@@ -1,0 +1,48 @@
+{
+  "nodes": {
+    "conflake": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1745176145,
+        "narHash": "sha256-aIzulPj2nGDq20E44zz+m7dUXVYEXFLK3cMmlqcMf78=",
+        "owner": "ratson",
+        "repo": "conflake",
+        "rev": "42e5d3726743b3c9ba8478f5bf9c3c700604802a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ratson",
+        "repo": "conflake",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1761114652,
+        "narHash": "sha256-f/QCJM/YhrV/lavyCVz8iU3rlZun6d+dAiC3H+CDle4=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "01f116e4df6a15f4ccdffb1bcd41096869fb385c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "conflake": "conflake",
+        "nixpkgs": "nixpkgs"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
