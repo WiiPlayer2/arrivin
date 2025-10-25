@@ -1,6 +1,18 @@
-﻿namespace Arrivin.Domain;
+﻿using Vogen;
 
-public class Class1
-{
+namespace Arrivin.Domain;
 
-}
+[ValueObject<string>]
+public partial record StorePath;
+
+[ValueObject<string>]
+public partial record DeploymentName;
+
+[ValueObject<Uri>]
+public partial record StoreUrl;
+
+public record DeploymentInfo(
+	StoreUrl StoreUrl,
+	StorePath Derivation,
+	StorePath? OutPath
+);
