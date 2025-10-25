@@ -22,6 +22,6 @@ mkShell {
     
     omnisharp-roslyn
     netcoredbg
-    dotnetCorePackages.dotnet_9.sdk
+    dotnetCorePackages.dotnet_8.sdk
   ];
 }
