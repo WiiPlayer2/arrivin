@@ -190,6 +190,11 @@
     "hash": "sha256-YzY22dnLm+dVgZELUD+xqsVBgaEKa4z+nQo/ARg0dDc="
   },
   {
+    "pname": "LanguageExt.Sys",
+    "version": "4.4.9",
+    "hash": "sha256-sxKSlxLyOCmzPxx2KiOP0aTYJZeLR32Sw8ya+RDfcbU="
+  },
+  {
     "pname": "Microsoft.Bcl.AsyncInterfaces",
     "version": "7.0.0",
     "hash": "sha256-1e031E26iraIqun84ad0fCIR4MJZ1hcQo4yFN+B7UfE="

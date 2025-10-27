@@ -35,6 +35,11 @@
     "hash": "sha256-YzY22dnLm+dVgZELUD+xqsVBgaEKa4z+nQo/ARg0dDc="
   },
   {
+    "pname": "LanguageExt.Sys",
+    "version": "4.4.9",
+    "hash": "sha256-sxKSlxLyOCmzPxx2KiOP0aTYJZeLR32Sw8ya+RDfcbU="
+  },
+  {
     "pname": "Microsoft.AspNetCore.WebUtilities",
     "version": "8.0.0",
     "hash": "sha256-e4wqTJUgPfq6CfRwuXTw32K9vB+hOpSLxSZDpzv23Yg="
