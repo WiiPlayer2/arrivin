@@ -1,27 +1,20 @@
 using Arrivin.Client.Application;
+using LanguageExt.Effects.Traits;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Arrivin.Client.GraphQL;
 
 public static class DI
 {
-    public static void AddGraphQLServices(this IServiceCollection services)
+    public static void AddGraphQLServices<RT>(this IServiceCollection services) where RT : struct, HasCancel<RT>
     {
         services.AddGraphQLClient();
-        services.AddTransient<IApiClient, GraphQLApiClient>();
+        services.AddTransient<IApiClient<RT>, GraphQLApiClient<RT>>();
     }
-    
-    public static void AddGraphQLServices(this IServiceCollection services, Uri serverUrl)
+
+    public static void AddGraphQLServices<RT>(this IServiceCollection services, Uri serverUrl) where RT : struct, HasCancel<RT>
     {
-        services.AddGraphQLServices();
+        services.AddGraphQLServices<RT>();
         services.AddSingleton<IHttpClientFactory>(new HttpClientFactory(serverUrl));
     }
 }
-
-internal class HttpClientFactory(Uri serverUrl) : IHttpClientFactory
-{
-    public HttpClient CreateClient(string name) => new HttpClient()
-    {
-        BaseAddress = serverUrl,
-    };
-} 

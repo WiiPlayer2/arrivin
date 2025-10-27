@@ -1,10 +1,10 @@
-﻿using Arrivin.Domain;
+﻿using LanguageExt.Effects.Traits;
 
 namespace Arrivin.Client.Application;
 
-public interface IApiClient
+public interface IApiClient<RT> where RT : struct, HasCancel<RT>
 {
-    Task<DeploymentInfo?> GetDeployment(DeploymentName name, CancellationToken cancellationToken = default);
-    
-    Task SetDeployment(DeploymentName name, DeploymentInfo deploymentInfo, CancellationToken cancellationToken = default);
+    Aff<RT, Option<DeploymentInfo>> GetDeployment(DeploymentName name);
+
+    Aff<RT, Unit> SetDeployment(DeploymentName name, DeploymentInfo deploymentInfo);
 }

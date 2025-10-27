@@ -1,9 +1,9 @@
-using Arrivin.Domain;
+using LanguageExt.Effects.Traits;
 
 namespace Arrivin.Client.Application;
 
-public class GetDeployment(IApiClient apiClient)
+public class GetDeployment<RT>(IApiClient<RT> apiClient) where RT : struct, HasCancel<RT>
 {
-    public Task<DeploymentInfo?> For(DeploymentName name, CancellationToken cancellationToken = default) =>
-        apiClient.GetDeployment(name, cancellationToken);
+    public Aff<RT, Option<DeploymentInfo>> For(DeploymentName name) =>
+        apiClient.GetDeployment(name);
 }

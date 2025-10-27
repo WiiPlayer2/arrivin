@@ -1,39 +1,35 @@
 ﻿using Arrivin.Client.Application;
-using Arrivin.Domain;
+using LanguageExt.Effects.Traits;
+using LanguageExt.UnsafeValueAccess;
 using StrawberryShake;
 
 namespace Arrivin.Client.GraphQL;
 
-internal class GraphQLApiClient(
+internal class GraphQLApiClient<RT>(
     GetDeploymentQuery getDeploymentQuery,
     SetDeploymentMutation setDeploymentMutation
-) : IApiClient
+) : IApiClient<RT> where RT : struct, HasCancel<RT>
 {
-    public async Task<DeploymentInfo?> GetDeployment(DeploymentName name, CancellationToken cancellationToken = default)
-    {
-        var result = await getDeploymentQuery.ExecuteAsync(name.Value, cancellationToken);
-        result.EnsureNoErrors();
-        if (result.Data!.Deployment is null)
-            return null;
+    public Aff<RT, Option<DeploymentInfo>> GetDeployment(DeploymentName name) =>
+        from result in Aff((RT rt) => getDeploymentQuery.ExecuteAsync(name.Value, rt.CancellationToken).ToValue())
+        from _10 in Eff(fun(result.EnsureNoErrors))
+        let deploymentInfoOption = Optional(result.Data!.Deployment)
+            .Map(data => new DeploymentInfo(
+                    StoreUrl.From(data.StoreUrl),
+                    StorePath.From(data.Derivation),
+                    Optional(data.OutPath).Map(StorePath.From).ValueUnsafe()
+                )
+            )
+        select deploymentInfoOption;
 
-        var deploymentInfo = new DeploymentInfo(
-            StoreUrl.From(result.Data.Deployment.StoreUrl),
-            StorePath.From(result.Data.Deployment.Derivation),
-            result.Data.Deployment.OutPath is null ? null : StorePath.From(result.Data.Deployment.OutPath)
-        );
-        return deploymentInfo;
-    }
-
-    public async Task SetDeployment(DeploymentName name, DeploymentInfo deploymentInfo,
-        CancellationToken cancellationToken = default)
-    {
-        var infoInput = new DeploymentInfoInput()
+    public Aff<RT, Unit> SetDeployment(DeploymentName name, DeploymentInfo deploymentInfo) =>
+        from infoInput in SuccessEff(new DeploymentInfoInput
         {
             StoreUrl = deploymentInfo.StoreUrl.Value,
             Derivation = deploymentInfo.Derivation.Value,
             OutPath = deploymentInfo.OutPath?.Value,
-        };
-        var result = await setDeploymentMutation.ExecuteAsync(name.Value, infoInput, cancellationToken);
-        result.EnsureNoErrors();
-    }
+        })
+        from result in Aff((RT rt) => setDeploymentMutation.ExecuteAsync(name.Value, infoInput, rt.CancellationToken).ToValue())
+        from _10 in Eff(fun(result.EnsureNoErrors))
+        select unit;
 }
