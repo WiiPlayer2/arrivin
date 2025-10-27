@@ -3,12 +3,12 @@ using Arrivin.Server.Application;
 using Arrivin.Server.InMemory;
 using Arrivin.Server.Web;
 using LanguageExt;
-using Query = Arrivin.Server.Web.Query;
+using LanguageExt.Sys.Live;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddGraphQLServer()
-    .AddType<Query>()
-    .AddType<Mutation>()
+    .AddQueryType<Query<Runtime>>()
+    .AddMutationType<Mutation<Runtime>>()
     .BindRuntimeType<Unit, UnitType>()
     .BindRuntimeType<StorePath, StringType>()
     .AddTypeConverter<StorePath, string>(x => x.Value)
@@ -20,8 +20,14 @@ builder.Services.AddGraphQLServer()
     .AddTypeConverter<StoreUrl, Uri>(x => x.Value)
     .AddTypeConverter<Uri, StoreUrl>(StoreUrl.From);
 
-builder.Services.AddApplicationServices();
-builder.Services.AddInMemoryServices();
+builder.Services.AddSingleton(new Runner<Runtime>(ct =>
+{
+    var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+    var runtime = Runtime.New(cts);
+    return (runtime, cts);
+}));
+builder.Services.AddApplicationServices<Runtime>();
+builder.Services.AddInMemoryServices<Runtime>();
 
 var app = builder.Build();
 app.MapGraphQL();

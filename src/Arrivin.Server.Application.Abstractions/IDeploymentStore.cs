@@ -1,10 +1,10 @@
-﻿using Arrivin.Domain;
+﻿using LanguageExt.Effects.Traits;
 
 namespace Arrivin.Server.Application;
 
-public interface IDeploymentStore
+public interface IDeploymentStore<RT> where RT : struct, HasCancel<RT>
 {
-    Task<DeploymentInfo?> GetDeploymentInfo(DeploymentName name, CancellationToken cancellationToken = default);
+    Aff<RT, Option<DeploymentInfo>> GetDeploymentInfo(DeploymentName name);
 
-    Task SetDeploymentInfo(DeploymentName name, DeploymentInfo info, CancellationToken cancellationToken = default);
+    Aff<RT, Unit> SetDeploymentInfo(DeploymentName name, DeploymentInfo info);
 }

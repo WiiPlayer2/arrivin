@@ -1,21 +1,15 @@
-using Arrivin.Domain;
 using Arrivin.Server.Application;
+using LanguageExt.Effects.Traits;
 
 namespace Arrivin.Server.InMemory;
 
-internal class InMemoryDeploymentStore : IDeploymentStore
+internal class InMemoryDeploymentStore<RT> : IDeploymentStore<RT> where RT : struct, HasCancel<RT>
 {
-    private readonly Dictionary<DeploymentName, DeploymentInfo> deployments = new();
+    private readonly IDictionary<DeploymentName, DeploymentInfo> deployments = new Dictionary<DeploymentName, DeploymentInfo>();
 
-    public Task<DeploymentInfo?> GetDeploymentInfo(DeploymentName name, CancellationToken cancellationToken = default)
-    {
-        deployments.TryGetValue(name, out var deployment);
-        return Task.FromResult(deployment);
-    }
+    public Aff<RT, Option<DeploymentInfo>> GetDeploymentInfo(DeploymentName name) =>
+        Eff(() => deployments.TryGetValue(name));
 
-    public Task SetDeploymentInfo(DeploymentName name, DeploymentInfo info, CancellationToken cancellationToken = default)
-    {
-        deployments[name] = info;
-        return Task.CompletedTask;
-    }
+    public Aff<RT, Unit> SetDeploymentInfo(DeploymentName name, DeploymentInfo info) =>
+        Eff(fun(() => { deployments[name] = info; }));
 }

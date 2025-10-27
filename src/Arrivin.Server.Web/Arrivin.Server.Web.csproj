@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="HotChocolate.AspNetCore" Version="15.1.11" />
+    <PackageReference Include="LanguageExt.Sys" Version="4.4.9"/>
   </ItemGroup>
 
   <ItemGroup>

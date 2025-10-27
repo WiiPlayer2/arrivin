@@ -1,12 +1,12 @@
-﻿using Arrivin.Domain;
+﻿using LanguageExt.Effects.Traits;
 
 namespace Arrivin.Server.Application;
 
-public class Deployments(IDeploymentStore store)
+public class Deployments<RT>(IDeploymentStore<RT> store) where RT : struct, HasCancel<RT>
 {
-    public Task<DeploymentInfo?> GetDeploymentInfo(DeploymentName name, CancellationToken cancellationToken = default) =>
-        store.GetDeploymentInfo(name, cancellationToken);
+    public Aff<RT, Option<DeploymentInfo>> GetDeploymentInfo(DeploymentName name) =>
+        store.GetDeploymentInfo(name);
 
-    public Task SetDeploymentInfo(DeploymentName name, DeploymentInfo info, CancellationToken cancellationToken = default) =>
-        store.SetDeploymentInfo(name, info, cancellationToken);
+    public Aff<RT, Unit> SetDeploymentInfo(DeploymentName name, DeploymentInfo info) =>
+        store.SetDeploymentInfo(name, info);
 }
