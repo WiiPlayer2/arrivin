@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="StrawberryShake.Server" Version="15.1.11" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Arrivin.Client.Application.Abstractions\Arrivin.Client.Application.Abstractions.csproj" />
+    </ItemGroup>
+
+</Project>
