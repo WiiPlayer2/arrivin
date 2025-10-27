@@ -1,0 +1,3 @@
+mutation SetDeployment($name: String!, $info: DeploymentInfoInput!) {
+    setDeployment(name: $name, info: $info)
+}

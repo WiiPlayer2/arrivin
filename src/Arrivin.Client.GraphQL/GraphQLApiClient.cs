@@ -4,7 +4,10 @@ using StrawberryShake;
 
 namespace Arrivin.Client.GraphQL;
 
-internal class GraphQLApiClient(GetDeploymentQuery getDeploymentQuery) : IApiClient
+internal class GraphQLApiClient(
+    GetDeploymentQuery getDeploymentQuery,
+    SetDeploymentMutation setDeploymentMutation
+) : IApiClient
 {
     public async Task<DeploymentInfo?> GetDeployment(DeploymentName name, CancellationToken cancellationToken = default)
     {
@@ -19,5 +22,18 @@ internal class GraphQLApiClient(GetDeploymentQuery getDeploymentQuery) : IApiCli
             result.Data.Deployment.OutPath is null ? null : StorePath.From(result.Data.Deployment.OutPath)
         );
         return deploymentInfo;
+    }
+
+    public async Task SetDeployment(DeploymentName name, DeploymentInfo deploymentInfo,
+        CancellationToken cancellationToken = default)
+    {
+        var infoInput = new DeploymentInfoInput()
+        {
+            StoreUrl = deploymentInfo.StoreUrl.Value,
+            Derivation = deploymentInfo.Derivation.Value,
+            OutPath = deploymentInfo.OutPath?.Value,
+        };
+        var result = await setDeploymentMutation.ExecuteAsync(name.Value, infoInput, cancellationToken);
+        result.EnsureNoErrors();
     }
 }
