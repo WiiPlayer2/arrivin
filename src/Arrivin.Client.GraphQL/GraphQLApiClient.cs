@@ -27,7 +27,7 @@ internal class GraphQLApiClient<RT>(
         {
             StoreUrl = deploymentInfo.StoreUrl.Value,
             Derivation = deploymentInfo.Derivation.Value,
-            OutPath = deploymentInfo.OutPath?.Value,
+            OutPath = deploymentInfo.OutPath.Map(x => x.Value).ValueUnsafe(),
         })
         from result in Aff((RT rt) => setDeploymentMutation.ExecuteAsync(name.Value, infoInput, rt.CancellationToken).ToValue())
         from _10 in Eff(fun(result.EnsureNoErrors))
