@@ -6,6 +6,8 @@ using LanguageExt;
 using LanguageExt.Sys.Live;
 
 var builder = WebApplication.CreateBuilder(args);
+if(Environment.GetEnvironmentVariable("ARRIVIND_CONFIG") is {} configPath)
+    builder.Configuration.AddJsonFile(configPath, true);
 builder.Services.AddGraphQLServer()
     .AddQueryType<Query<Runtime>>()
     .AddMutationType<Mutation<Runtime>>()
