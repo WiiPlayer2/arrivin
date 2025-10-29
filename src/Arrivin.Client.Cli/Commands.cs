@@ -11,6 +11,7 @@ public static class Commands
         Get,
         Set,
         Push,
+        Pull,
     };
 
     public static Command Get { get; } = new("get")
@@ -31,5 +32,10 @@ public static class Commands
         Arguments.DeploymentName,
         Arguments.Path,
         Options.Store,
+    };
+
+    public static Command Pull { get; } = new("pull")
+    {
+        Arguments.DeploymentName,
     };
 }

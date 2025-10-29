@@ -12,7 +12,8 @@ namespace Arrivin.Client.Cli;
 public class CommandActions(
     GetDeployment<Runtime> getDeployment,
     SetDeployment<Runtime> setDeployment,
-    PushDeployment<Runtime> pushDeployment
+    PushDeployment<Runtime> pushDeployment,
+    PullDeployment<Runtime> pullDeployment
 )
 {
     public void Init()
@@ -20,6 +21,7 @@ public class CommandActions(
         Commands.Get.SetAction(RunEff(Get));
         Commands.Set.SetAction(RunEff(Set));
         Commands.Push.SetAction(RunEff(Push));
+        Commands.Pull.SetAction(RunEff(Pull));
     }
 
     private static Eff<T> FromValueObjectValidation<T>(ValueObjectOrError<T> valueOrError) =>
@@ -40,6 +42,12 @@ public class CommandActions(
         from path in GetRequiredValue(parseResult, Arguments.Path)
             .Bind(v => FromValueObjectValidation(StorePath.TryFrom(v)))
         from _ in pushDeployment.With(name, storeUrl, path)
+        select unit;
+    
+    private Aff<Runtime, Unit> Pull(ParseResult parseResult) =>
+        from name in GetRequiredValue(parseResult, Arguments.DeploymentName)
+            .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
+        from _ in pullDeployment.With(name)
         select unit;
 
     private static Eff<T> GetRequiredValue<T>(ParseResult parseResult, Argument<T> argument) =>

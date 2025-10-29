@@ -24,6 +24,20 @@ public class NixCli<RT> : INix<RT> where RT : struct, HasCancel<RT>
             .ExecuteAsync(rt.CancellationToken)
         ).Map(_ => unit);
 
+    public Aff<RT, Unit> CopyFrom(StoreUrl store, StorePath path) =>
+        Aff(async (RT rt) => await Cli.Wrap("nix")
+            .WithArguments([
+                "copy",
+                "--from",
+                store.Value.ToString().TrimEnd('/'),
+                path.Value,
+                "--no-check-sigs",
+            ])
+            .WithStandardOutputPipe(PipeTarget.ToStream(Console.OpenStandardOutput()))
+            .WithStandardErrorPipe(PipeTarget.ToStream(Console.OpenStandardError()))
+            .ExecuteAsync(rt.CancellationToken)
+        ).Map(_ => unit);
+
     public Aff<RT, StorePath> GetDerivation(StorePath path) =>
         from cliResult in Aff(async (RT rt) => await Cli.Wrap("nix")
             .WithArguments([
