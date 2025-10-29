@@ -11,13 +11,15 @@ namespace Arrivin.Client.Cli;
 
 public class CommandActions(
     GetDeployment<Runtime> getDeployment,
-    SetDeployment<Runtime> setDeployment
+    SetDeployment<Runtime> setDeployment,
+    PushDeployment<Runtime> pushDeployment
 )
 {
     public void Init()
     {
         Commands.Get.SetAction(RunEff(Get));
         Commands.Set.SetAction(RunEff(Set));
+        Commands.Push.SetAction(RunEff(Push));
     }
 
     private static Eff<T> FromValueObjectValidation<T>(ValueObjectOrError<T> valueOrError) =>
@@ -28,6 +30,16 @@ public class CommandActions(
             .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
         from deploymentInfo in getDeployment.For(name)
         from _ in Eff(fun(() => Console.WriteLine(deploymentInfo)))
+        select unit;
+    
+    private Aff<Runtime, Unit> Push(ParseResult parseResult) =>
+        from name in GetRequiredValue(parseResult, Arguments.DeploymentName)
+            .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
+        from storeUrl in GetRequiredValue(parseResult, Options.Store)
+            .Bind(v => FromValueObjectValidation(StoreUrl.TryFrom(new Uri(v))))
+        from path in GetRequiredValue(parseResult, Arguments.Path)
+            .Bind(v => FromValueObjectValidation(StorePath.TryFrom(v)))
+        from _ in pushDeployment.With(name, storeUrl, path)
         select unit;
 
     private static Eff<T> GetRequiredValue<T>(ParseResult parseResult, Argument<T> argument) =>

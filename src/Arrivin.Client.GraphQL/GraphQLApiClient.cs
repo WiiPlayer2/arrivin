@@ -23,7 +23,7 @@ internal class GraphQLApiClient<RT>(
         select deploymentInfoOption;
 
     public Aff<RT, Unit> SetDeployment(DeploymentName name, DeploymentInfo deploymentInfo) =>
-        from infoInput in SuccessEff(new DeploymentInfoInput
+        from infoInput in SuccessEff(new DeploymentInfoDtoInput
         {
             StoreUrl = deploymentInfo.StoreUrl.Value,
             Derivation = deploymentInfo.Derivation.Value,

@@ -17,6 +17,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Arrivin.Client.Application\Arrivin.Client.Application.csproj" />
       <ProjectReference Include="..\Arrivin.Client.GraphQL\Arrivin.Client.GraphQL.csproj" />
+      <ProjectReference Include="..\Arrivin.Client.NixCli\Arrivin.Client.NixCli.csproj" />
     </ItemGroup>
 
 </Project>

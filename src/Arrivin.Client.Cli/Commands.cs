@@ -10,6 +10,7 @@ public static class Commands
         Options.Server,
         Get,
         Set,
+        Push,
     };
 
     public static Command Get { get; } = new("get")
@@ -23,5 +24,12 @@ public static class Commands
         Options.Store,
         Options.Derivation,
         Options.OutPath,
+    };
+
+    public static Command Push { get; } = new("push")
+    {
+        Arguments.DeploymentName,
+        Arguments.Path,
+        Options.Store,
     };
 }

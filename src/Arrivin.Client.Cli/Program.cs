@@ -1,6 +1,7 @@
 ﻿using Arrivin.Client.Application;
 using Arrivin.Client.Cli;
 using Arrivin.Client.GraphQL;
+using Arrivin.Client.NixCli;
 using LanguageExt.Sys.Live;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,6 +22,7 @@ if (parseResult.Errors.Count > 0)
 }
 
 services.AddGraphQLServices<Runtime>(new Uri(parseResult.GetValue(Options.Server)!));
+services.AddNixCli<Runtime>();
 
 await using var serviceProvider = services.BuildServiceProvider();
 serviceProvider.GetRequiredService<CommandActions>().Init();
