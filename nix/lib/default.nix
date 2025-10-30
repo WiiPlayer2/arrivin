@@ -8,9 +8,9 @@ let
         evaluateOnly ? false,
       }:
       {
-        inherit evaluateOnly;
-        outPath = path.outPath;
-        derivation = path.drvPath;
+        out = path.outPath;
+        drv = path.drvPath;
+        build = !evaluateOnly;
       };
   };
 
