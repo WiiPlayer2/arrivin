@@ -4,12 +4,13 @@ let
   general = {
     cfg =
       {
+        name,
         store,
         path,
         evaluateOnly ? false,
       }:
       {
-        inherit store;
+        inherit name store;
 
         out = path.outPath;
         drv = path.drvPath;
