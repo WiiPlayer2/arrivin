@@ -1,22 +1,22 @@
 {
   "nodes": {
-    "conflake": {
+    "flakelight": {
       "inputs": {
         "nixpkgs": [
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1745176145,
-        "narHash": "sha256-aIzulPj2nGDq20E44zz+m7dUXVYEXFLK3cMmlqcMf78=",
-        "owner": "ratson",
-        "repo": "conflake",
-        "rev": "42e5d3726743b3c9ba8478f5bf9c3c700604802a",
+        "lastModified": 1761636064,
+        "narHash": "sha256-xAbEYL5gqPnBfXOIGToPjF6E0n9RSe8YJ6E2/ePrPaM=",
+        "owner": "nix-community",
+        "repo": "flakelight",
+        "rev": "2c621bc66465c457b64b016bb00d575ff2e51094",
         "type": "github"
       },
       "original": {
-        "owner": "ratson",
-        "repo": "conflake",
+        "owner": "nix-community",
+        "repo": "flakelight",
         "type": "github"
       }
     },
@@ -38,7 +38,7 @@
     },
     "root": {
       "inputs": {
-        "conflake": "conflake",
+        "flakelight": "flakelight",
         "nixpkgs": "nixpkgs"
       }
     }

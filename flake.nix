@@ -2,16 +2,14 @@
   description = "Description for the project";
 
   outputs =
-    { conflake, ... }@inputs:
-    conflake ./. {
+    { flakelight, ... }@inputs:
+    flakelight ./. {
       inherit inputs;
-
-      devShell.packages = { pkgs }: with pkgs; [ hello ];
     };
 
   inputs = {
-    conflake = {
-      url = "github:ratson/conflake";
+    flakelight = {
+      url = "github:nix-community/flakelight";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
