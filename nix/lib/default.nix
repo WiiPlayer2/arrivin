@@ -4,10 +4,13 @@ let
   general = {
     cfg =
       {
+        store,
         path,
         evaluateOnly ? false,
       }:
       {
+        inherit store;
+
         out = path.outPath;
         drv = path.drvPath;
         build = !evaluateOnly;
