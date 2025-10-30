@@ -10,4 +10,8 @@ public interface INix<RT> where RT : struct, HasCancel<RT>
     Aff<RT, Unit> CopyFrom(StoreUrl store, StorePath path);
 
     Aff<RT, StorePath> GetDerivation(StorePath path);
+
+    Aff<RT, PublishInfo> EvaluateDeployment(Installable installable);
+
+    Aff<RT, Unit> Build(StorePath derivation);
 }

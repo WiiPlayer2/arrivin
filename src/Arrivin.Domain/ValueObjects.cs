@@ -17,3 +17,6 @@ public record DeploymentInfo(
     StorePath Derivation,
     Option<StorePath> OutPath
 );
+
+[ValueObject<string>]
+public partial record Installable;
