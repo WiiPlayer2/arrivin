@@ -13,5 +13,5 @@ else
 fi
 
 for job in $JOBS; do
-    arrivin --server "$URL" publish "$REPO_PATH"#"$job" || true
+    arrivin --server "$URL" publish "$REPO_PATH"#"arrivin.$job" || true
 done
