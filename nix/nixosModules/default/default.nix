@@ -123,7 +123,7 @@ in
         };
 
         services.arrivin-publish = {
-          script = getExe runPublishScript;
+          script = "${getExe runPublishScript} ""$@""";
           scriptArgs = escapeShellArgs ([
               cfg.client.url
               "/var/lib/arrivin"
