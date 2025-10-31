@@ -220,6 +220,16 @@
     "hash": "sha256-Enknv2RsFF68lEPdrf5M+BpV1kHoLTVRApKUwuk/pj0="
   },
   {
+    "pname": "Microsoft.Extensions.Configuration.Abstractions",
+    "version": "8.0.0",
+    "hash": "sha256-4eBpDkf7MJozTZnOwQvwcfgRKQGcNXe0K/kF+h5Rl8o="
+  },
+  {
+    "pname": "Microsoft.Extensions.Configuration.Binder",
+    "version": "8.0.0",
+    "hash": "sha256-GanfInGzzoN2bKeNwON8/Hnamr6l7RTpYLA49CNXD9Q="
+  },
+  {
     "pname": "Microsoft.Extensions.DependencyInjection",
     "version": "8.0.0",
     "hash": "sha256-+qIDR8hRzreCHNEDtUcPfVHQdurzWPo/mqviCH78+EQ="
@@ -243,6 +253,16 @@
     "pname": "Microsoft.Extensions.Options",
     "version": "8.0.0",
     "hash": "sha256-n2m4JSegQKUTlOsKLZUUHHKMq926eJ0w9N9G+I3FoFw="
+  },
+  {
+    "pname": "Microsoft.Extensions.Options.ConfigurationExtensions",
+    "version": "8.0.0",
+    "hash": "sha256-A5Bbzw1kiNkgirk5x8kyxwg9lLTcSngojeD+ocpG1RI="
+  },
+  {
+    "pname": "Microsoft.Extensions.Options.DataAnnotations",
+    "version": "8.0.0",
+    "hash": "sha256-YkkPrzoX1NS+e7fDqA/bWTmLASqyJhxelm6J72M4UtU="
   },
   {
     "pname": "Microsoft.Extensions.Primitives",
