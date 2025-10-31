@@ -70,10 +70,7 @@ in
 
       services.arrivin.server.settings = {
         Kestrel.Endpoints.Http.Url = "http://${cfg.server.config.listen.host}:${toString cfg.server.config.listen.port}";
-        FileStore.Path = path.subpath.join [
-          cfg.server.config.dataDir
-          "deployments"
-        ];
+        FileStore.Path = path.append cfg.server.config.dataDir "deployments";
       };
 
       networking.firewall.allowedTCPPorts = mkIf cfg.server.openFirewall [ cfg.server.config.listen.port ];
