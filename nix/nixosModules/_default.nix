@@ -1,3 +1,4 @@
+{ outputs, ... }:
 { lib, config, pkgs, ... }:
 with lib;
 let
@@ -41,6 +42,11 @@ in
   };
 
   config = mkMerge [
+    {
+      nixpkgs.overlays = [
+        outputs.overlays.default
+      ];
+    }
     (mkIf cfg.server.enable {
       environment.systemPackages = [ cfg.server.package ];
 
