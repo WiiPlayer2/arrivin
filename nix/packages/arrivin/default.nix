@@ -1,7 +1,10 @@
 {
+  lib,
   buildDotnetModule,
 
   dotnetCorePackages,
+  makeWrapper,
+  nix,
 }:
 buildDotnetModule {
   pname = "arrivin";
@@ -12,6 +15,15 @@ buildDotnetModule {
   nugetDeps = ./deps.json;
 
   dotnet-runtime = dotnetCorePackages.runtime_8_0;
+
+  nativeBuildInputs = [ makeWrapper ];
+
+  makeWrapperArgs = [
+    "--prefix"
+    "PATH"
+    ":"
+    (lib.makeBinPath [ nix ])
+  ];
 
   meta = {
     mainProgram = "arrivin";
