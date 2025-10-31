@@ -11,4 +11,6 @@ public static class Options
     public static Option<string> Derivation { get; } = new("derivation", "-d", "--derivation");
 
     public static Option<string> OutPath { get; } = new("out-path", "-o", "--out-path");
+    
+    public static Option<bool> IgnorePushErrors { get; } = new("ignore-push-errors", "--ignore-push-errors");
 }

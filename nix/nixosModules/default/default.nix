@@ -72,6 +72,11 @@ in
         jobs = mkOption {
           type = with types; listOf str;
         };
+
+        ignorePushErrors = mkOption {
+          types = types.bool;
+          default = false;
+        };
       };
 
       deploy = {
@@ -129,6 +134,7 @@ in
               cfg.client.url
               "/var/lib/arrivin/repository"
               cfg.client.publish.remote
+              (if cfg.client.publish.ignorePushErrors then "--ignore-push-errors" else "")
             ] ++ cfg.client.publish.jobs);
         };
       };

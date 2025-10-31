@@ -1,6 +1,8 @@
 URL="$1"
 REPO_PATH="$2"
 REMOTE="$3"
+IGNORE_PUSH_ERRORS_ARG="$4"
+shift
 shift
 shift
 shift
@@ -13,5 +15,5 @@ else
 fi
 
 for job in $JOBS; do
-    arrivin --server "$URL" publish "$REPO_PATH#arrivin.$job" || true
+    arrivin --server "$URL" publish "$REPO_PATH#arrivin.$job" "$IGNORE_PUSH_ERRORS_ARG" || true
 done

@@ -57,7 +57,8 @@ public class CommandActions(
     private Aff<Runtime, Unit> Publish(ParseResult parseResult) =>
         from installable in GetRequiredValue(parseResult, Arguments.Installable)
             .Bind(v => FromValueObjectValidation(Installable.TryFrom(v)))
-        from _ in publishDeployment.With(installable)
+        from ignorePushErrors in GetRequiredValue(parseResult, Options.IgnorePushErrors)
+        from _ in publishDeployment.With(installable, ignorePushErrors)
         select unit;
     
     private Aff<Runtime, Unit> Deploy(ParseResult parseResult) =>

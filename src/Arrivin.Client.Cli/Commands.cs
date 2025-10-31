@@ -44,6 +44,7 @@ public static class Commands
     public static Command Publish { get; } = new("publish")
     {
         Arguments.Installable,
+        Options.IgnorePushErrors,
     };
 
     public static Command Deploy { get; } = new("deploy")
