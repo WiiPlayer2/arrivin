@@ -5,6 +5,16 @@ let
   cfg = config.services.arrivin;
   format = pkgs.formats.json { };
   serverConfigFile = format.generate "arrivind.json" cfg.server.settings;
+
+  # client publish
+  runPublishScript = pkgs.writeShellApplication {
+    name = "run-publish";
+    runtimeInputs = with pkgs; [
+      git
+      cfg.client.package
+    ];
+    text = readFile ./run-publish.sh;
+  };
 in
 {
   options.services.arrivin = {
@@ -46,6 +56,30 @@ in
     client = {
       enable = mkEnableOption "";
       package = mkPackageOption pkgs "arrivin" {};
+
+      url = mkOption {
+        type = types.str;
+      };
+
+      publish = {
+        enable = mkEnableOption "";
+
+        remote = mkOption {
+          type = types.str;
+        };
+
+        jobs = mkOption {
+          type = with types; listOf str;
+        };
+      };
+
+      deploy = {
+        enable = mkEnableOption "";
+
+        jobs = mkOption {
+          type = with types; listOf str;
+        };
+      };
     };
   };
 
@@ -77,6 +111,26 @@ in
     })
     (mkIf cfg.client.enable {
       environment.systemPackages = [ cfg.client.package ];
+    })
+    (mkIf (cfg.client.enable && cfg.client.publish.enable) {
+      systemd = {
+        timers.arrivin-publish = {
+          timerConfig = {
+            OnBootSec = "10 min";
+            OnUnitInactiveSec = "2 h";
+          };
+          wantedBy = ["multi-user.target"];
+        };
+
+        services.arrivin-publish = {
+          script = getExe runPublishScript;
+          scriptArgs = escapeShellArgs ([
+              cfg.client.url
+              "/var/lib/arrivin"
+              cfg.client.publish.remote
+            ] ++ cfg.client.publish.jobs);
+        };
+      };
     })
   ];
 }

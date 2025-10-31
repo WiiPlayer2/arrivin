@@ -1,4 +1,4 @@
 { outputs, ... } @ args:
 {
-  default = import ./_default.nix args;
+  default = import ./default args;
 }
