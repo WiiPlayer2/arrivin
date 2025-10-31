@@ -22,6 +22,10 @@ in
         type = types.bool;
         default = true;
       };
+      debug = mkOption {
+        type = types.bool;
+        default = false;
+      };
       config = {
         listen = {
           host = mkOption {
@@ -32,6 +36,10 @@ in
             type = types.port;
             default = 5014; # pending
           };
+        };
+        dataDir = mkOption {
+          type = types.str;
+          default = "/var/lib/arrivin";
         };
       };
     };
@@ -51,13 +59,22 @@ in
       environment.systemPackages = [ cfg.server.package ];
 
       systemd.services.arrivind = {
-        environment.ARRIVIND_CONFIG = cfg.server.configFile;
+        environment = {
+          ARRIVIND_CONFIG = cfg.server.configFile;
+          ASPNETCORE_ENVIRONMENT = mkIf cfg.server.debug "Development";
+        };
         script = ''
           ${getExe cfg.server.package}
         '';
       };
 
-      services.arrivin.server.settings.Kestrel.Endpoints.Http.Url = "http://${cfg.server.config.listen.host}:${toString cfg.server.config.listen.port}";
+      services.arrivin.server.settings = {
+        Kestrel.Endpoints.Http.Url = "http://${cfg.server.config.listen.host}:${toString cfg.server.config.listen.port}";
+        FileStore.Path = path.subpath.join [
+          cfg.server.config.dataDir
+          "deployments"
+        ];
+      };
 
       networking.firewall.allowedTCPPorts = mkIf cfg.server.openFirewall [ cfg.server.config.listen.port ];
     })
