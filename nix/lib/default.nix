@@ -50,7 +50,7 @@ let
             # work around https://github.com/NixOS/nixpkgs/issues/73404
             cd /tmp
 
-            $PROFILE/bin/switch-to-configuration switch
+            ${base.config.system.build.toplevel}/bin/switch-to-configuration switch
 
             # https://github.com/serokell/deploy-rs/issues/31
             ${with base.config.boot.loader;
