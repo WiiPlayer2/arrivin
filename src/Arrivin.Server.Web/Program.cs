@@ -1,5 +1,6 @@
 using Arrivin.Domain;
 using Arrivin.Server.Application;
+using Arrivin.Server.FileStore;
 using Arrivin.Server.InMemory;
 using Arrivin.Server.Web;
 using LanguageExt;
@@ -32,7 +33,7 @@ builder.Services.AddSingleton(new Runner<Runtime>(ct =>
     return (runtime, cts);
 }));
 builder.Services.AddApplicationServices<Runtime>();
-builder.Services.AddInMemoryServices<Runtime>();
+builder.Services.AddFileStore<Runtime>();
 
 var app = builder.Build();
 app.MapGraphQL();
