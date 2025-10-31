@@ -1,5 +1,10 @@
 [
   {
+    "pname": "CliWrap",
+    "version": "3.9.0",
+    "hash": "sha256-WC1bX8uy+8VZkrV6eK8nJ24Uy81Bj4Aao27OsP1sGyE="
+  },
+  {
     "pname": "FunicularSwitch.Generators",
     "version": "4.5.1",
     "hash": "sha256-og61c0MwS6gwhNeGEjBvlGZT97WZrg1/4tOpnthjJ1I="
