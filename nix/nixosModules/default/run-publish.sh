@@ -4,7 +4,7 @@ REMOTE="$3"
 shift
 shift
 shift
-JOBS="$@"
+JOBS="$*"
 
 if [ ! -d "$REPO_PATH" ]; then
     git clone "$REMOTE" "$REPO_PATH"
