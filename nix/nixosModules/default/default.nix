@@ -126,7 +126,7 @@ in
           script = "${getExe runPublishScript} \"$@\"";
           scriptArgs = escapeShellArgs ([
               cfg.client.url
-              "/var/lib/arrivin"
+              "/var/lib/arrivin/repository"
               cfg.client.publish.remote
             ] ++ cfg.client.publish.jobs);
         };

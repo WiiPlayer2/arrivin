@@ -8,6 +8,8 @@ JOBS="$*"
 
 if [ ! -d "$REPO_PATH" ]; then
     git clone "$REMOTE" "$REPO_PATH"
+else
+    git -C "$REPO_PATH" pull
 fi
 
 for job in $JOBS; do
