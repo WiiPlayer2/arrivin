@@ -74,7 +74,7 @@ in
         };
 
         ignorePushErrors = mkOption {
-          types = types.bool;
+          type = types.bool;
           default = false;
         };
       };
