@@ -10,8 +10,9 @@ let
   runPublishScript = pkgs.writeShellApplication {
     name = "run-publish";
     runtimeInputs = with pkgs; [
-      git
       cfg.client.package
+      git
+      openssh
     ];
     text = readFile ./run-publish.sh;
   };
