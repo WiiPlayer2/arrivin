@@ -12,5 +12,6 @@ public static class DI
         services.AddTransient<PushDeployment<RT>>();
         services.AddTransient<PullDeployment<RT>>();
         services.AddTransient<PublishDeployment<RT>>();
+        services.AddTransient<DeployDeployment<RT>>();
     }
 }

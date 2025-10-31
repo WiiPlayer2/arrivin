@@ -14,7 +14,8 @@ public class CommandActions(
     SetDeployment<Runtime> setDeployment,
     PushDeployment<Runtime> pushDeployment,
     PullDeployment<Runtime> pullDeployment,
-    PublishDeployment<Runtime> publishDeployment
+    PublishDeployment<Runtime> publishDeployment,
+    DeployDeployment<Runtime> deployDeployment
 )
 {
     public void Init()
@@ -24,6 +25,7 @@ public class CommandActions(
         Commands.Push.SetAction(RunEff(Push));
         Commands.Pull.SetAction(RunEff(Pull));
         Commands.Publish.SetAction(RunEff(Publish));
+        Commands.Deploy.SetAction(RunEff(Deploy));
     }
 
     private static Eff<T> FromValueObjectValidation<T>(ValueObjectOrError<T> valueOrError) =>
@@ -56,6 +58,12 @@ public class CommandActions(
         from installable in GetRequiredValue(parseResult, Arguments.Installable)
             .Bind(v => FromValueObjectValidation(Installable.TryFrom(v)))
         from _ in publishDeployment.With(installable)
+        select unit;
+    
+    private Aff<Runtime, Unit> Deploy(ParseResult parseResult) =>
+        from name in GetRequiredValue(parseResult, Arguments.DeploymentName)
+            .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
+        from _ in deployDeployment.With(name)
         select unit;
 
     private static Eff<T> GetRequiredValue<T>(ParseResult parseResult, Argument<T> argument) =>

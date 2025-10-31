@@ -63,10 +63,13 @@ public class NixCli<RT> : INix<RT> where RT : struct, HasCancel<RT>
         )
         select publishInfo;
 
-    public Aff<RT, Unit> Build(StorePath derivation) => CliNix("nix-store", [
-        "--realise",
-        derivation.Value,
-    ]).Map(_ => unit);
+    public Aff<RT, StorePath> Build(StorePath derivation) =>
+        from result in CliNix("nix-store", [
+            "--realise",
+            derivation.Value,
+        ])
+        let outPath = StorePath.From(result.StandardOutput.Split('\n').First().Trim())
+        select outPath;
 
     private Aff<RT, BufferedCommandResult> CliNix(string command, IReadOnlyList<string> args) =>
         Aff(async (RT rt) => await Cli.Wrap(command)

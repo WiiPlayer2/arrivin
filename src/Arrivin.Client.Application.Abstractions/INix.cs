@@ -13,5 +13,5 @@ public interface INix<RT> where RT : struct, HasCancel<RT>
 
     Aff<RT, PublishInfo> EvaluateDeployment(Installable installable);
 
-    Aff<RT, Unit> Build(StorePath derivation);
+    Aff<RT, StorePath> Build(StorePath derivation);
 }

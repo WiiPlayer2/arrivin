@@ -21,6 +21,6 @@ public class PublishDeployment<RT>(
 
     private (Aff<RT, Unit> Build, StorePath PublishPath, Option<StorePath> OutPath) ResolveBuild(PublishInfo publishInfo) =>
         publishInfo.ShouldBuild
-            ? (nix.Build(publishInfo.Derivation), publishInfo.OutPath, publishInfo.OutPath)
+            ? (nix.Build(publishInfo.Derivation).Map(_ => unit), publishInfo.OutPath, publishInfo.OutPath)
             : (unitAff, publishInfo.Derivation, Option<StorePath>.None);
 }

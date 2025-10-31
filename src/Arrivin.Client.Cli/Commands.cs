@@ -13,6 +13,7 @@ public static class Commands
         Push,
         Pull,
         Publish,
+        Deploy,
     };
 
     public static Command Get { get; } = new("get")
@@ -43,5 +44,10 @@ public static class Commands
     public static Command Publish { get; } = new("publish")
     {
         Arguments.Installable,
+    };
+
+    public static Command Deploy { get; } = new("deploy")
+    {
+        Arguments.DeploymentName,
     };
 }
