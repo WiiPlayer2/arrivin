@@ -12,4 +12,8 @@ buildDotnetModule {
   nugetDeps = ./deps.json;
 
   dotnet-runtime = dotnetCorePackages.runtime_8_0;
+
+  meta = {
+    mainProgram = "arrivin";
+  };
 }
