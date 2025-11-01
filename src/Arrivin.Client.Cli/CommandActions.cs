@@ -3,6 +3,7 @@ using Arrivin.Client.Application;
 using Arrivin.Client.Domain;
 using Arrivin.Domain;
 using LanguageExt;
+using LanguageExt.Effects.Traits;
 using LanguageExt.Sys.Live;
 using LanguageExt.UnsafeValueAccess;
 using Vogen;
@@ -10,14 +11,15 @@ using static LanguageExt.Prelude;
 
 namespace Arrivin.Client.Cli;
 
-public class CommandActions(
-    GetDeployment<Runtime> getDeployment,
-    SetDeployment<Runtime> setDeployment,
-    PushDeployment<Runtime> pushDeployment,
-    PullDeployment<Runtime> pullDeployment,
-    PublishDeployment<Runtime> publishDeployment,
-    DeployDeployment<Runtime> deployDeployment
-)
+public class CommandActions<RT>(
+    Runner<RT> runner,
+    GetDeployment<RT> getDeployment,
+    SetDeployment<RT> setDeployment,
+    PushDeployment<RT> pushDeployment,
+    PullDeployment<RT> pullDeployment,
+    PublishDeployment<RT> publishDeployment,
+    DeployDeployment<RT> deployDeployment
+) where RT : struct, HasCancel<RT>
 {
     public void Init()
     {
@@ -32,7 +34,7 @@ public class CommandActions(
     private static Eff<T> FromValueObjectValidation<T>(ValueObjectOrError<T> valueOrError) =>
         valueOrError.IsSuccess ? SuccessEff(valueOrError.ValueObject) : FailEff<T>(valueOrError.Error.ErrorMessage);
 
-    private Aff<Runtime, Unit> Get(ParseResult parseResult) =>
+    private Aff<RT, Unit> Get(ParseResult parseResult) =>
         from serverUrl in ArgEff.Server(parseResult)
         from name in GetRequiredValue(parseResult, Arguments.DeploymentName)
             .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
@@ -40,7 +42,7 @@ public class CommandActions(
         from _ in Eff(fun(() => Console.WriteLine(deploymentInfo)))
         select unit;
     
-    private Aff<Runtime, Unit> Push(ParseResult parseResult) =>
+    private Aff<RT, Unit> Push(ParseResult parseResult) =>
         from serverUrl in ArgEff.Server(parseResult)
         from name in GetRequiredValue(parseResult, Arguments.DeploymentName)
             .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
@@ -51,14 +53,14 @@ public class CommandActions(
         from _ in pushDeployment.With(serverUrl, name, storeUrl, path)
         select unit;
     
-    private Aff<Runtime, Unit> Pull(ParseResult parseResult) =>
+    private Aff<RT, Unit> Pull(ParseResult parseResult) =>
         from serverUrl in ArgEff.Server(parseResult)
         from name in GetRequiredValue(parseResult, Arguments.DeploymentName)
             .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
         from _ in pullDeployment.With(serverUrl, name)
         select unit;
     
-    private Aff<Runtime, Unit> Publish(ParseResult parseResult) =>
+    private Aff<RT, Unit> Publish(ParseResult parseResult) =>
         from serverUrl in ArgEff.Server(parseResult)
         from installable in GetRequiredValue(parseResult, Arguments.Installable)
             .Bind(v => FromValueObjectValidation(Installable.TryFrom(v)))
@@ -66,7 +68,7 @@ public class CommandActions(
         from _ in publishDeployment.With(serverUrl, installable, ignorePushErrors)
         select unit;
     
-    private Aff<Runtime, Unit> Deploy(ParseResult parseResult) =>
+    private Aff<RT, Unit> Deploy(ParseResult parseResult) =>
         from serverUrl in ArgEff.Server(parseResult)
         from name in GetRequiredValue(parseResult, Arguments.DeploymentName)
             .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
@@ -82,12 +84,10 @@ public class CommandActions(
     private static Eff<LanguageExt.Option<T>> GetValue<T>(ParseResult parseResult, System.CommandLine.Option<T> argument) =>
         Eff(() => Optional(parseResult.GetValue(argument)));
 
-    private static Func<ParseResult, CancellationToken, Task<int>> RunEff(Func<ParseResult, Aff<Runtime, Unit>> fn) =>
+    private Func<ParseResult, CancellationToken, Task<int>> RunEff(Func<ParseResult, Aff<RT, Unit>> fn) =>
         async (parseResult, cancellationToken) =>
         {
-            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            var runtime = Runtime.New(cts);
-            var result = await fn(parseResult).Run(runtime);
+            var result = await runner.Run(fn(parseResult), cancellationToken);
             return result.Match(_ => 0, e =>
             {
                 Console.Error.WriteLine(e.ToErrorException());
@@ -95,7 +95,7 @@ public class CommandActions(
             });
         };
 
-    private Aff<Runtime, Unit> Set(ParseResult parseResult) =>
+    private Aff<RT, Unit> Set(ParseResult parseResult) =>
         from serverUrl in ArgEff.Server(parseResult)
         from name in GetRequiredValue(parseResult, Arguments.DeploymentName)
             .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
