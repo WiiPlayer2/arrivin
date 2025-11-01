@@ -8,8 +8,8 @@ public class DeployDeployment<RT>(
     ICli<RT> cli
 ) where RT : struct, HasCancel<RT>
 {
-    public Aff<RT, Unit> With(DeploymentName name) =>
-        from deploymentInfo in pullDeployment.With(name)
+    public Aff<RT, Unit> With(ServerUrl serverUrl, DeploymentName name) =>
+        from deploymentInfo in pullDeployment.With(serverUrl, name)
         from outPath in deploymentInfo.OutPath.Match(
             v => SuccessAff(v),
             nix.Build(deploymentInfo.Derivation))

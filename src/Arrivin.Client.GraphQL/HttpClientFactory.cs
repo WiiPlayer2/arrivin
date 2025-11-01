@@ -1,9 +1,6 @@
 namespace Arrivin.Client.GraphQL;
 
-internal class HttpClientFactory(Uri serverUrl) : IHttpClientFactory
+internal class HttpClientFactory : IHttpClientFactory
 {
-    public HttpClient CreateClient(string name) => new()
-    {
-        BaseAddress = serverUrl,
-    };
+    public HttpClient CreateClient(string name) => new();
 }

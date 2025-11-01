@@ -1,5 +1,6 @@
 using System.CommandLine;
 using Arrivin.Client.Application;
+using Arrivin.Client.Domain;
 using Arrivin.Domain;
 using LanguageExt;
 using LanguageExt.Sys.Live;
@@ -32,39 +33,44 @@ public class CommandActions(
         valueOrError.IsSuccess ? SuccessEff(valueOrError.ValueObject) : FailEff<T>(valueOrError.Error.ErrorMessage);
 
     private Aff<Runtime, Unit> Get(ParseResult parseResult) =>
+        from serverUrl in ArgEff.Server(parseResult)
         from name in GetRequiredValue(parseResult, Arguments.DeploymentName)
             .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
-        from deploymentInfo in getDeployment.For(name)
+        from deploymentInfo in getDeployment.For(serverUrl, name)
         from _ in Eff(fun(() => Console.WriteLine(deploymentInfo)))
         select unit;
     
     private Aff<Runtime, Unit> Push(ParseResult parseResult) =>
+        from serverUrl in ArgEff.Server(parseResult)
         from name in GetRequiredValue(parseResult, Arguments.DeploymentName)
             .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
         from storeUrl in GetRequiredValue(parseResult, Options.Store)
             .Bind(v => FromValueObjectValidation(StoreUrl.TryFrom(new Uri(v))))
         from path in GetRequiredValue(parseResult, Arguments.Path)
             .Bind(v => FromValueObjectValidation(StorePath.TryFrom(v)))
-        from _ in pushDeployment.With(name, storeUrl, path)
+        from _ in pushDeployment.With(serverUrl, name, storeUrl, path)
         select unit;
     
     private Aff<Runtime, Unit> Pull(ParseResult parseResult) =>
+        from serverUrl in ArgEff.Server(parseResult)
         from name in GetRequiredValue(parseResult, Arguments.DeploymentName)
             .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
-        from _ in pullDeployment.With(name)
+        from _ in pullDeployment.With(serverUrl, name)
         select unit;
     
     private Aff<Runtime, Unit> Publish(ParseResult parseResult) =>
+        from serverUrl in ArgEff.Server(parseResult)
         from installable in GetRequiredValue(parseResult, Arguments.Installable)
             .Bind(v => FromValueObjectValidation(Installable.TryFrom(v)))
         from ignorePushErrors in GetRequiredValue(parseResult, Options.IgnorePushErrors)
-        from _ in publishDeployment.With(installable, ignorePushErrors)
+        from _ in publishDeployment.With(serverUrl, installable, ignorePushErrors)
         select unit;
     
     private Aff<Runtime, Unit> Deploy(ParseResult parseResult) =>
+        from serverUrl in ArgEff.Server(parseResult)
         from name in GetRequiredValue(parseResult, Arguments.DeploymentName)
             .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
-        from _ in deployDeployment.With(name)
+        from _ in deployDeployment.With(serverUrl, name)
         select unit;
 
     private static Eff<T> GetRequiredValue<T>(ParseResult parseResult, Argument<T> argument) =>
@@ -90,6 +96,7 @@ public class CommandActions(
         };
 
     private Aff<Runtime, Unit> Set(ParseResult parseResult) =>
+        from serverUrl in ArgEff.Server(parseResult)
         from name in GetRequiredValue(parseResult, Arguments.DeploymentName)
             .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
         from storeUrl in GetRequiredValue(parseResult, Options.Store)
@@ -99,6 +106,13 @@ public class CommandActions(
         from outPathOption in GetValue(parseResult, Options.OutPath)
             .Bind(vOption => vOption.Map(v => FromValueObjectValidation(StorePath.TryFrom(v))).Traverse(_ => _))
         let deploymentInfo = new DeploymentInfo(storeUrl, derivation, outPathOption.ValueUnsafe())
-        from _ in setDeployment.For(name, deploymentInfo)
+        from _ in setDeployment.For(serverUrl, name, deploymentInfo)
         select unit;
+
+    private static class ArgEff
+    {
+        public static Eff<ServerUrl> Server(ParseResult parseResult) =>
+            GetRequiredValue(parseResult, Options.Server)
+                .Bind(v => FromValueObjectValidation(ServerUrl.TryFrom(new Uri(v))));
+    }
 }

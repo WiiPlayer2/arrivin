@@ -7,7 +7,7 @@ public class PushDeployment<RT>(
     INix<RT> nix
 ) where RT : struct, HasCancel<RT>
 {
-    public Aff<RT, Unit> With(DeploymentName name, StoreUrl store, StorePath path) =>
+    public Aff<RT, Unit> With(ServerUrl serverUrl, DeploymentName name, StoreUrl store, StorePath path) =>
         from _10 in nix.CopyTo(store, path)
         from derivation in nix.GetDerivation(path)
         let outPath = path == derivation ? None : Some(path)
@@ -16,6 +16,6 @@ public class PushDeployment<RT>(
             derivation,
             outPath
         )
-        from _20 in setDeployment.For(name, deploymentInfo)
+        from _20 in setDeployment.For(serverUrl, name, deploymentInfo)
         select unit;
 }

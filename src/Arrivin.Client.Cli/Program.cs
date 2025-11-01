@@ -7,23 +7,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 var services = new ServiceCollection();
 services.AddTransient<CommandActions>();
-
 services.AddApplicationServices<Runtime>();
-
-var parseResult = Commands.Root.Parse(args);
-if (parseResult.Errors.Count > 0)
-{
-    foreach (var parseError in parseResult.Errors)
-    {
-        Console.Error.WriteLine(parseError.Message);
-    }
-
-    return -1;
-}
-
-services.AddGraphQLServices<Runtime>(new Uri(parseResult.GetValue(Options.Server)!));
+services.AddGraphQLServices<Runtime>();
 services.AddNixCli<Runtime>();
 
 await using var serviceProvider = services.BuildServiceProvider();
 serviceProvider.GetRequiredService<CommandActions>().Init();
+
+var parseResult = Commands.Root.Parse(args);
 return await parseResult.InvokeAsync();

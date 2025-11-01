@@ -10,11 +10,6 @@ public static class DI
     {
         services.AddGraphQLClient();
         services.AddTransient<IApiClient<RT>, GraphQLApiClient<RT>>();
-    }
-
-    public static void AddGraphQLServices<RT>(this IServiceCollection services, Uri serverUrl) where RT : struct, HasCancel<RT>
-    {
-        services.AddGraphQLServices<RT>();
-        services.AddSingleton<IHttpClientFactory>(new HttpClientFactory(serverUrl));
+        services.AddSingleton<IHttpClientFactory>(new HttpClientFactory());
     }
 }
