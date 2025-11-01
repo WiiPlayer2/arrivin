@@ -4,6 +4,7 @@ namespace Arrivin.Client.Application;
 
 public class PublishDeployment<RT>(
     PushDeployment<RT> pushDeployment,
+    SetDeployment<RT> setDeployment,
     INix<RT> nix
 ) where RT : struct, HasCancel<RT>
 {
@@ -11,13 +12,13 @@ public class PublishDeployment<RT>(
         from publishInfo in nix.EvaluateDeployment(installable)
         let tuple = ResolveBuild(publishInfo)
         from _05 in tuple.Build
-        from _10 in pushDeployment.With(publishInfo.Name, publishInfo.Store, tuple.PublishPath)
-            .Apply(x => ignorePushErrors ? x.IfFail(unit) : x)
         let deploymentInfo = new DeploymentInfo(
             publishInfo.Store,
             publishInfo.Derivation,
             tuple.OutPath
         )
+        from _10 in pushDeployment.With(publishInfo.Name, publishInfo.Store, tuple.PublishPath)
+            .Apply(x => ignorePushErrors ? x.IfFailAff(setDeployment.For(publishInfo.Name, deploymentInfo)) : x)
         select deploymentInfo;
 
     private (Aff<RT, Unit> Build, StorePath PublishPath, Option<StorePath> OutPath) ResolveBuild(PublishInfo publishInfo) =>

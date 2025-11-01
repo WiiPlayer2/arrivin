@@ -106,6 +106,7 @@ in
         script = ''
           ${getExe cfg.server.package}
         '';
+        wantedBy = ["multi-user.target"];
       };
 
       services.arrivin.server.settings = {
