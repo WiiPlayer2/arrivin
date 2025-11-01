@@ -16,6 +16,17 @@ let
     ];
     text = readFile ./run-publish.sh;
   };
+
+  # client deploy
+  runDeployScript = pkgs.writeShellApplication {
+    name = "run-deploy";
+    runtimeInputs = with pkgs; [
+      cfg.client.package
+      git
+      openssh
+    ];
+    text = readFile ./run-deploy.sh;
+  };
 in
 {
   options.services.arrivin = {
@@ -137,6 +148,24 @@ in
               cfg.client.publish.remote
               (if cfg.client.publish.ignorePushErrors then "--ignore-push-errors" else "")
             ] ++ cfg.client.publish.jobs);
+        };
+      };
+    })
+    (mkIf (cfg.client.enable && cfg.client.deploy.enable) {
+      systemd = {
+        timers.arrivin-deploy = {
+          timerConfig = {
+            OnBootSec = "10 min";
+            OnUnitInactiveSec = "2 h";
+          };
+          wantedBy = ["multi-user.target"];
+        };
+
+        services.arrivin-deploy = {
+          script = "${getExe runDeployScript} \"$@\"";
+          scriptArgs = escapeShellArgs ([
+              cfg.client.url
+            ] ++ cfg.client.deploy.jobs);
         };
       };
     })
