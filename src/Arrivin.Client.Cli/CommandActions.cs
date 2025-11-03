@@ -65,7 +65,7 @@ public class CommandActions<RT>(
         from installable in GetRequiredValue(parseResult, Arguments.Installable)
             .Bind(v => FromValueObjectValidation(Installable.TryFrom(v)))
         from ignorePushErrors in GetRequiredValue(parseResult, Options.IgnorePushErrors)
-        let extraBuildArgs = NixArgs.From(parseResult.UnmatchedTokens)
+        from extraBuildArgs in ArgEff.ExtraArgs(parseResult)
         from _ in publishDeployment.With(serverUrl, installable, ignorePushErrors, extraBuildArgs)
         select unit;
     
@@ -73,7 +73,7 @@ public class CommandActions<RT>(
         from serverUrl in ArgEff.Server(parseResult)
         from name in GetRequiredValue(parseResult, Arguments.DeploymentName)
             .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
-        let extraBuildArgs = NixArgs.From(parseResult.UnmatchedTokens)
+        from extraBuildArgs in ArgEff.ExtraArgs(parseResult)
         from _ in deployDeployment.With(serverUrl, name, extraBuildArgs)
         select unit;
 
@@ -116,5 +116,9 @@ public class CommandActions<RT>(
         public static Eff<ServerUrl> Server(ParseResult parseResult) =>
             GetRequiredValue(parseResult, Options.Server)
                 .Bind(v => FromValueObjectValidation(ServerUrl.TryFrom(new Uri(v))));
+
+        public static Eff<NixArgs> ExtraArgs(ParseResult parseResult) =>
+            GetRequiredValue(parseResult, Arguments.ExtraArgs)
+                .Bind(v => FromValueObjectValidation(NixArgs.TryFrom(v)));
     }
 }

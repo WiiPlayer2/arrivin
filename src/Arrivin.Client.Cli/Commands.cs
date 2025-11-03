@@ -43,12 +43,14 @@ public static class Commands
 
     public static Command Publish { get; } = new("publish")
     {
-        Arguments.Installable,
         Options.IgnorePushErrors,
+        Arguments.Installable,
+        Arguments.ExtraArgs,
     };
 
     public static Command Deploy { get; } = new("deploy")
     {
         Arguments.DeploymentName,
+        Arguments.ExtraArgs,
     };
 }
