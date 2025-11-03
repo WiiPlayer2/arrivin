@@ -10,5 +10,8 @@ public static class Arguments
     
     public static Argument<string> Installable { get; } = new("installable");
     
-    public static Argument<string[]> ExtraArgs { get; } = new("extra-args");
+    public static Argument<string[]> ExtraArgs { get; } = new("extra-args")
+    {
+        DefaultValueFactory = _ => [],
+    };
 }
