@@ -8,9 +8,9 @@ public class PublishDeployment<RT>(
     INix<RT> nix
 ) where RT : struct, HasCancel<RT>
 {
-    public Aff<RT, DeploymentInfo> With(ServerUrl serverUrl, Installable installable, bool ignorePushErrors) =>
+    public Aff<RT, DeploymentInfo> With(ServerUrl serverUrl, Installable installable, bool ignorePushErrors, NixArgs extraBuildArgs) =>
         from publishInfo in nix.EvaluateDeployment(installable)
-        let tuple = ResolveBuild(publishInfo)
+        let tuple = ResolveBuild(publishInfo, extraBuildArgs)
         from _05 in tuple.Build
         let deploymentInfo = new DeploymentInfo(
             publishInfo.Store,
@@ -21,8 +21,8 @@ public class PublishDeployment<RT>(
             .Apply(x => ignorePushErrors ? x.IfFailAff(setDeployment.For(serverUrl, publishInfo.Name, deploymentInfo)) : x)
         select deploymentInfo;
 
-    private (Aff<RT, Unit> Build, StorePath PublishPath, Option<StorePath> OutPath) ResolveBuild(PublishInfo publishInfo) =>
+    private (Aff<RT, Unit> Build, StorePath PublishPath, Option<StorePath> OutPath) ResolveBuild(PublishInfo publishInfo, NixArgs extraBuildArgs) =>
         publishInfo.ShouldBuild
-            ? (nix.Build(publishInfo.Derivation).Map(_ => unit), publishInfo.OutPath, publishInfo.OutPath)
+            ? (nix.Build(publishInfo.Derivation, extraBuildArgs).Map(_ => unit), publishInfo.OutPath, publishInfo.OutPath)
             : (unitAff, publishInfo.Derivation, Option<StorePath>.None);
 }

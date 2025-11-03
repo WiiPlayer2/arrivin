@@ -65,7 +65,8 @@ public class CommandActions<RT>(
         from installable in GetRequiredValue(parseResult, Arguments.Installable)
             .Bind(v => FromValueObjectValidation(Installable.TryFrom(v)))
         from ignorePushErrors in GetRequiredValue(parseResult, Options.IgnorePushErrors)
-        from _ in publishDeployment.With(serverUrl, installable, ignorePushErrors)
+        let extraBuildArgs = NixArgs.From(parseResult.UnmatchedTokens)
+        from _ in publishDeployment.With(serverUrl, installable, ignorePushErrors, extraBuildArgs)
         select unit;
     
     private Aff<RT, Unit> Deploy(ParseResult parseResult) =>

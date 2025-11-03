@@ -15,5 +15,5 @@ else
 fi
 
 for job in $JOBS; do
-    arrivin --server "$URL" publish "$REPO_PATH#arrivin.$job" "$IGNORE_PUSH_ERRORS_ARG" || true
+    arrivin --server "$URL" publish "$REPO_PATH#arrivin.$job" "$IGNORE_PUSH_ERRORS_ARG" -- --max-jobs 1 || true
 done
