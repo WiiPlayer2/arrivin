@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using Arrivin.Client.Application;
+using Arrivin.Client.Domain;
 using Arrivin.Domain;
 using CliWrap;
 using CliWrap.Buffered;
@@ -63,10 +64,11 @@ public class NixCli<RT> : INix<RT> where RT : struct, HasCancel<RT>
         )
         select publishInfo;
 
-    public Aff<RT, StorePath> Build(StorePath derivation) =>
+    public Aff<RT, StorePath> Build(StorePath derivation, NixArgs extraArgs) =>
         from result in CliNix("nix-store", [
             "--realise",
             derivation.Value,
+            ..extraArgs.Value,
         ])
         let outPath = StorePath.From(result.StandardOutput.Split('\n').First().Trim())
         select outPath;

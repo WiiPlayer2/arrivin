@@ -72,7 +72,8 @@ public class CommandActions<RT>(
         from serverUrl in ArgEff.Server(parseResult)
         from name in GetRequiredValue(parseResult, Arguments.DeploymentName)
             .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
-        from _ in deployDeployment.With(serverUrl, name)
+        let extraBuildArgs = NixArgs.From(parseResult.UnmatchedTokens)
+        from _ in deployDeployment.With(serverUrl, name, extraBuildArgs)
         select unit;
 
     private static Eff<T> GetRequiredValue<T>(ParseResult parseResult, Argument<T> argument) =>

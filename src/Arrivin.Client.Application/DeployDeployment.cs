@@ -8,11 +8,11 @@ public class DeployDeployment<RT>(
     ICli<RT> cli
 ) where RT : struct, HasCancel<RT>
 {
-    public Aff<RT, Unit> With(ServerUrl serverUrl, DeploymentName name) =>
+    public Aff<RT, Unit> With(ServerUrl serverUrl, DeploymentName name, NixArgs extraBuildArgs) =>
         from deploymentInfo in pullDeployment.With(serverUrl, name)
         from outPath in deploymentInfo.OutPath.Match(
             v => SuccessAff(v),
-            nix.Build(deploymentInfo.Derivation))
+            nix.Build(deploymentInfo.Derivation, extraBuildArgs))
         let activationPath = StorePath.From(Path.Join(outPath.Value, "arrivin-activate"))
         from _10 in cli.Call(activationPath)
         select unit;
