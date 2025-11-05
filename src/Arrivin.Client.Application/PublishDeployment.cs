@@ -9,7 +9,7 @@ public class PublishDeployment<RT>(
 ) where RT : struct, HasCancel<RT>
 {
     public Aff<RT, DeploymentInfo> With(ServerUrl serverUrl, Installable installable, bool ignorePushErrors, NixArgs extraBuildArgs) =>
-        from publishInfo in nix.EvaluateDeployment(installable)
+        from publishInfo in nix.EvaluateDeployment(installable, extraBuildArgs)
         let tuple = ResolveBuild(publishInfo, extraBuildArgs)
         from _05 in tuple.Build
         let deploymentInfo = new DeploymentInfo(

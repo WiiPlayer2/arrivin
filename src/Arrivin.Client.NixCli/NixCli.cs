@@ -12,19 +12,14 @@ namespace Arrivin.Client.NixCli;
 
 public class NixCli<RT> : INix<RT> where RT : struct, HasCancel<RT>
 {
-    public Aff<RT, Unit> CopyTo(StoreUrl store, StorePath path) =>
-        Aff(async (RT rt) => await Cli.Wrap("nix")
-            .WithArguments([
-                "copy",
-                "--to",
-                store.Value.ToString().TrimEnd('/'),
-                path.Value,
-                "--no-check-sigs",
-            ])
-            .WithStandardOutputPipe(PipeTarget.ToStream(Console.OpenStandardOutput()))
-            .WithStandardErrorPipe(PipeTarget.ToStream(Console.OpenStandardError()))
-            .ExecuteAsync(rt.CancellationToken)
-        ).Map(_ => unit);
+    public Aff<RT, StorePath> Build(StorePath derivation, NixArgs extraArgs) =>
+        from result in CliNix("nix-store", [
+            "--realise",
+            derivation.Value,
+            ..extraArgs.Value,
+        ])
+        let outPath = StorePath.From(result.StandardOutput.Split('\n').First().Trim())
+        select outPath;
 
     public Aff<RT, Unit> CopyFrom(StoreUrl store, StorePath path) =>
         Aff(async (RT rt) => await Cli.Wrap("nix")
@@ -40,19 +35,22 @@ public class NixCli<RT> : INix<RT> where RT : struct, HasCancel<RT>
             .ExecuteAsync(rt.CancellationToken)
         ).Map(_ => unit);
 
-    public Aff<RT, StorePath> GetDerivation(StorePath path) =>
-        from cliResult in Aff(async (RT rt) => await Cli.Wrap("nix")
+    public Aff<RT, Unit> CopyTo(StoreUrl store, StorePath path) =>
+        Aff(async (RT rt) => await Cli.Wrap("nix")
             .WithArguments([
-                "path-info",
-                "--derivation",
+                "copy",
+                "--to",
+                store.Value.ToString().TrimEnd('/'),
                 path.Value,
+                "--no-check-sigs",
             ])
-            .ExecuteBufferedAsync(rt.CancellationToken))
-        let derivation = StorePath.From(cliResult.StandardOutput.Trim())
-        select derivation;
+            .WithStandardOutputPipe(PipeTarget.ToStream(Console.OpenStandardOutput()))
+            .WithStandardErrorPipe(PipeTarget.ToStream(Console.OpenStandardError()))
+            .ExecuteAsync(rt.CancellationToken)
+        ).Map(_ => unit);
 
-    public Aff<RT, PublishInfo> EvaluateDeployment(Installable installable) =>
-        from result in CliNix("nix", ["eval", "--json", installable.Value])
+    public Aff<RT, PublishInfo> EvaluateDeployment(Installable installable, NixArgs extraArgs) =>
+        from result in CliNix("nix", ["eval", "--json", installable.Value, ..extraArgs.Value])
         from dto in Eff(() => JsonSerializer.Deserialize<PublishInfoDto>(result.StandardOutput))
         from publishInfo in (
             from name in Optional(dto.Name).ToEff().Map(DeploymentName.From)
@@ -64,14 +62,16 @@ public class NixCli<RT> : INix<RT> where RT : struct, HasCancel<RT>
         )
         select publishInfo;
 
-    public Aff<RT, StorePath> Build(StorePath derivation, NixArgs extraArgs) =>
-        from result in CliNix("nix-store", [
-            "--realise",
-            derivation.Value,
-            ..extraArgs.Value,
-        ])
-        let outPath = StorePath.From(result.StandardOutput.Split('\n').First().Trim())
-        select outPath;
+    public Aff<RT, StorePath> GetDerivation(StorePath path) =>
+        from cliResult in Aff(async (RT rt) => await Cli.Wrap("nix")
+            .WithArguments([
+                "path-info",
+                "--derivation",
+                path.Value,
+            ])
+            .ExecuteBufferedAsync(rt.CancellationToken))
+        let derivation = StorePath.From(cliResult.StandardOutput.Trim())
+        select derivation;
 
     private Aff<RT, BufferedCommandResult> CliNix(string command, IReadOnlyList<string> args) =>
         Aff(async (RT rt) => await Cli.Wrap(command)
