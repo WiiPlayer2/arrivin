@@ -50,6 +50,7 @@ let
             # work around https://github.com/NixOS/nixpkgs/issues/73404
             cd /tmp
 
+            nix-env --profile /nix/var/nix/profiles/system --set ${base.config.system.build.toplevel}
             ${base.config.system.build.toplevel}/bin/switch-to-configuration switch
 
             # https://github.com/serokell/deploy-rs/issues/31
