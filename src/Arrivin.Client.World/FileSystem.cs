@@ -22,8 +22,8 @@ internal class FileSystem<RT>(ILogger<FileSystem<RT>> logger) : IFileSystem<RT> 
 
     public Aff<RT, Unit> RemoveFileEntry(FilePath path) =>
         from _05 in Eff(fun(() => logger.LogTrace("Removing file entry \"{path}\"...", path)))
-        from _10 in Eff(fun(() => File.Delete(path.Value)))
-        from _20 in Eff(fun(() => Directory.Delete(path.Value, true)))
+        from _10 in File.Exists(path.Value) ? Eff(fun(() => File.Delete(path.Value))) : unitEff
+        from _20 in Directory.Exists(path.Value) ? Eff(fun(() => Directory.Delete(path.Value, true))) : unitEff
         select unit;
 
     public Aff<RT, Unit> SetFileEntry(FilePath path, FileEntry entry) =>
