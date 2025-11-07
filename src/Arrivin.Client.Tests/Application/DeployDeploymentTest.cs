@@ -77,6 +77,8 @@ public class DeployDeploymentTest
                 .NotContainKey(FilePath.From("/var/lib/arrivin/gcroots/deployments/test-current.drv"));
             testEnvironment.FileSystemEntries.Should()
                 .NotContainKey(FilePath.From("/var/lib/arrivin/gcroots/deployments/test-current.out"));
+            testEnvironment.Cli
+                .Verify(x => x.Call(StorePath.From("/nix/store/test/arrivin-activate")));
         }
     }
 
@@ -115,6 +117,8 @@ public class DeployDeploymentTest
                 .NotContainKey(FilePath.From("/var/lib/arrivin/gcroots/deployments/test-current.drv"));
             testEnvironment.FileSystemEntries.Should()
                 .NotContainKey(FilePath.From("/var/lib/arrivin/gcroots/deployments/test-current.out"));
+            testEnvironment.Cli
+                .Verify(x => x.Call(StorePath.From("/nix/store/test/arrivin-activate")));
         }
     }
 
@@ -156,6 +160,8 @@ public class DeployDeploymentTest
                     FileEntry.Symlink(FilePath.From("/nix/store/test")));
             testEnvironment.Nix
                 .Verify(x => x.Build(It.IsAny<StorePath>(), It.IsAny<NixArgs>()), Times.Never);
+            testEnvironment.Cli
+                .Verify(x => x.Call(StorePath.From("/nix/store/test/arrivin-activate")), Times.Never);
         }
     }
 }

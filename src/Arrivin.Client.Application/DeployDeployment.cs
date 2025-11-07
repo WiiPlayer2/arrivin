@@ -30,7 +30,7 @@ public class DeployDeployment<RT>(
             .IfNone(true)
         from _05 in mustActivate
             ? from activationPath in SuccessEff(StorePath.From(Path.Join(activatablePath.Value, "arrivin-activate")))
-              from _10 in cli.Call(activatablePath)
+              from _10 in cli.Call(activationPath)
               from _20 in AddRoot(dataDirectory, FileName.From($"{name}.out"), activatablePath)
               from _30 in AddRoot(dataDirectory, FileName.From($"{name}.drv"), derivation)
               from _40 in RemoveRoot(dataDirectory, FileName.From($"{name}-current.out"))
