@@ -6,6 +6,7 @@ using Arrivin.Client.World;
 using LanguageExt.Effects.Traits;
 using LanguageExt.Sys.Live;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 var services = new ServiceCollection();
 services.AddSingleton(new Runner<Runtime>(ct =>
@@ -15,6 +16,10 @@ services.AddSingleton(new Runner<Runtime>(ct =>
     return (runtime, cts);
 }));
 AddServices<Runtime>(services);
+
+services.AddLogging(logging => logging
+    .SetMinimumLevel(LogLevel.Trace)
+    .AddConsole());
 
 await using var serviceProvider = services.BuildServiceProvider();
 serviceProvider.GetRequiredService<CommandActions<Runtime>>().Init();

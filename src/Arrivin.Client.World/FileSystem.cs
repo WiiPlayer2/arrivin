@@ -1,11 +1,13 @@
 using Arrivin.Client.Application;
 using LanguageExt.Effects.Traits;
+using Microsoft.Extensions.Logging;
 
 namespace Arrivin.Client.World;
 
-internal class FileSystem<RT> : IFileSystem<RT> where RT : struct, HasCancel<RT>
+internal class FileSystem<RT>(ILogger<FileSystem<RT>> logger) : IFileSystem<RT> where RT : struct, HasCancel<RT>
 {
     public Aff<RT, Option<FileEntry>> GetFileEntry(FilePath path) =>
+        from _10 in Eff(fun(() => logger.LogTrace("Getting file entry \"{path}\"...", path)))
         from pathExists in SuccessEff(Path.Exists(path.Value))
         from fileEntry in pathExists
             ? (
@@ -19,11 +21,13 @@ internal class FileSystem<RT> : IFileSystem<RT> where RT : struct, HasCancel<RT>
         select fileEntry;
 
     public Aff<RT, Unit> RemoveFileEntry(FilePath path) =>
+        from _05 in Eff(fun(() => logger.LogTrace("Removing file entry \"{path}\"...", path)))
         from _10 in Eff(fun(() => File.Delete(path.Value)))
         from _20 in Eff(fun(() => Directory.Delete(path.Value, true)))
         select unit;
 
     public Aff<RT, Unit> SetFileEntry(FilePath path, FileEntry entry) =>
+        from _05 in Eff(fun(() => logger.LogTrace("Setting file entry \"{path}\" to \"{entry}\"...", path, entry)))
         from directory in Eff(() => Path.GetDirectoryName(path.Value))
         from _10 in Eff(() => Directory.CreateDirectory(directory))
         from _15 in RemoveFileEntry(path)
