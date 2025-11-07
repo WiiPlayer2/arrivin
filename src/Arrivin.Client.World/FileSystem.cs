@@ -26,7 +26,7 @@ internal class FileSystem<RT> : IFileSystem<RT> where RT : struct, HasCancel<RT>
     public Aff<RT, Unit> SetFileEntry(FilePath path, FileEntry entry) =>
         from directory in Eff(() => Path.GetDirectoryName(path.Value))
         from _10 in Eff(() => Directory.CreateDirectory(directory))
-        from _20 in entry.Match(symlink => Eff(() => Directory.CreateSymbolicLink(path.Value, symlink.Path.Value))
-        )
+        from _15 in RemoveFileEntry(path)
+        from _20 in entry.Match(symlink => Eff(() => Directory.CreateSymbolicLink(path.Value, symlink.Path.Value)))
         select unit;
 }
