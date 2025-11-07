@@ -6,6 +6,7 @@ public static class Commands
 {
     public static Command Deploy { get; } = new("deploy")
     {
+        Options.UseStore,
         Arguments.DeploymentName,
         Arguments.ExtraArgs,
     };
@@ -18,20 +19,23 @@ public static class Commands
     public static Command Publish { get; } = new("publish")
     {
         Options.IgnorePushErrors,
+        Options.UseStore,
         Arguments.Installable,
         Arguments.ExtraArgs,
     };
 
     public static Command Pull { get; } = new("pull")
     {
+        Options.UseStore,
         Arguments.DeploymentName,
     };
 
     public static Command Push { get; } = new("push")
     {
+        Options.Store,
+        Options.UseStore,
         Arguments.DeploymentName,
         Arguments.Path,
-        Options.Store,
     };
 
     public static RootCommand Root => new()

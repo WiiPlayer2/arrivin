@@ -7,10 +7,10 @@ public class PullDeployment<RT>(
     INix<RT> nix
 ) where RT : struct, HasCancel<RT>
 {
-    public Aff<RT, DeploymentInfo> With(ServerUrl serverUrl, DeploymentName name) =>
+    public Aff<RT, DeploymentInfo> With(ServerUrl serverUrl, DeploymentName name, Option<StoreUrl> useStoreOption) =>
         from deploymentInfo in getDeployment.For(serverUrl, name)
             .Bind(x => x.ToEff("Deployment not found"))
         let pullPath = deploymentInfo.OutPath.IfNone(deploymentInfo.Derivation)
-        from _10 in nix.CopyFrom(deploymentInfo.StoreUrl, pullPath)
+        from _10 in nix.CopyFrom(useStoreOption.IfNone(deploymentInfo.StoreUrl), pullPath)
         select deploymentInfo;
 }

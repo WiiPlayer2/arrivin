@@ -36,7 +36,8 @@ public class CommandActions<RT>(
             .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
         from extraBuildArgs in ArgEff.ExtraArgs(parseResult)
         from dataDirectory in ArgEff.DataDirectory(parseResult)
-        from _ in deployDeployment.With(serverUrl, dataDirectory, name, extraBuildArgs)
+        from useStoreOption in ArgEff.UseStore(parseResult)
+        from _ in deployDeployment.With(serverUrl, dataDirectory, name, extraBuildArgs, useStoreOption)
         select unit;
 
     private static Eff<T> FromValueObjectValidation<T>(ValueObjectOrError<T> valueOrError) =>
@@ -65,14 +66,16 @@ public class CommandActions<RT>(
             .Bind(v => FromValueObjectValidation(Installable.TryFrom(v)))
         from ignorePushErrors in GetRequiredValue(parseResult, Options.IgnorePushErrors)
         from extraBuildArgs in ArgEff.ExtraArgs(parseResult)
-        from _ in publishDeployment.With(serverUrl, installable, ignorePushErrors, extraBuildArgs)
+        from useStoreOption in ArgEff.UseStore(parseResult)
+        from _ in publishDeployment.With(serverUrl, installable, ignorePushErrors, extraBuildArgs, useStoreOption)
         select unit;
 
     private Aff<RT, Unit> Pull(ParseResult parseResult) =>
         from serverUrl in ArgEff.Server(parseResult)
         from name in GetRequiredValue(parseResult, Arguments.DeploymentName)
             .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
-        from _ in pullDeployment.With(serverUrl, name)
+        from useStoreOption in ArgEff.UseStore(parseResult)
+        from _ in pullDeployment.With(serverUrl, name, useStoreOption)
         select unit;
 
     private Aff<RT, Unit> Push(ParseResult parseResult) =>
@@ -83,7 +86,8 @@ public class CommandActions<RT>(
             .Bind(v => FromValueObjectValidation(StoreUrl.TryFrom(new Uri(v))))
         from path in GetRequiredValue(parseResult, Arguments.Path)
             .Bind(v => FromValueObjectValidation(StorePath.TryFrom(v)))
-        from _ in pushDeployment.With(serverUrl, name, storeUrl, path)
+        from useStoreOption in ArgEff.UseStore(parseResult)
+        from _ in pushDeployment.With(serverUrl, name, storeUrl, path, useStoreOption)
         select unit;
 
     private Func<ParseResult, CancellationToken, Task<int>> RunEff(Func<ParseResult, Aff<RT, Unit>> fn) =>
@@ -124,5 +128,27 @@ public class CommandActions<RT>(
         public static Eff<ServerUrl> Server(ParseResult parseResult) =>
             GetRequiredValue(parseResult, Options.Server)
                 .Bind(v => FromValueObjectValidation(ServerUrl.TryFrom(new Uri(v))));
+
+        public static Eff<LanguageExt.Option<StoreUrl>> UseStore(ParseResult parseResult) =>
+            From(parseResult, Options.UseStore.Name, (string v) => StoreUrl.TryFrom(new Uri(v)));
+
+        private static Eff<TValueObject> FromRequired<TValue, TValueObject>(
+            ParseResult parseResult,
+            string name,
+            Func<TValue, ValueObjectOrError<TValueObject>> fn) =>
+            from value in Eff(() => parseResult.GetRequiredValue<TValue>(name))
+            from valueObject in FromValueObjectValidation(fn(value))
+            select valueObject;
+        
+        private static Eff<LanguageExt.Option<TValueObject>> From<TValue, TValueObject>(
+            ParseResult parseResult,
+            string name,
+            Func<TValue, ValueObjectOrError<TValueObject>> fn) =>
+            from valueOption in Eff(() => Optional(parseResult.GetValue<TValue>(name)))
+            from valueObjectOption in valueOption
+                .Map(value => FromValueObjectValidation(fn(value)))
+                .Traverse(identity)
+            select valueObjectOption;
+
     }
 }

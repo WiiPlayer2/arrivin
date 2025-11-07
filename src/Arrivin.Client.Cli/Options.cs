@@ -18,4 +18,6 @@ public static class Options
     public static Option<string> Server { get; } = new("--server", "-u");
 
     public static Option<string> Store { get; } = new("--store", "-s");
+    
+    public static Option<string> UseStore { get; } = new("--use-store");
 }
