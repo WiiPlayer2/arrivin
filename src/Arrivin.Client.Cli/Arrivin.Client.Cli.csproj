@@ -18,6 +18,7 @@
       <ProjectReference Include="..\Arrivin.Client.Application\Arrivin.Client.Application.csproj" />
       <ProjectReference Include="..\Arrivin.Client.GraphQL\Arrivin.Client.GraphQL.csproj" />
       <ProjectReference Include="..\Arrivin.Client.NixCli\Arrivin.Client.NixCli.csproj" />
+        <ProjectReference Include="..\Arrivin.Client.World\Arrivin.Client.World.csproj"/>
     </ItemGroup>
 
 </Project>

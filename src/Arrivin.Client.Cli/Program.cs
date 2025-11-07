@@ -2,6 +2,7 @@
 using Arrivin.Client.Cli;
 using Arrivin.Client.GraphQL;
 using Arrivin.Client.NixCli;
+using Arrivin.Client.World;
 using LanguageExt.Effects.Traits;
 using LanguageExt.Sys.Live;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,4 +28,5 @@ static void AddServices<RT>(IServiceCollection services) where RT : struct, HasC
     services.AddApplicationServices<RT>();
     services.AddGraphQLServices<RT>();
     services.AddNixCli<RT>();
+    services.AddWorldServices<RT>();
 }
