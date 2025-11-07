@@ -4,7 +4,6 @@ using Arrivin.Client.Domain;
 using Arrivin.Domain;
 using LanguageExt;
 using LanguageExt.Effects.Traits;
-using LanguageExt.Sys.Live;
 using LanguageExt.UnsafeValueAccess;
 using Vogen;
 using static LanguageExt.Prelude;
@@ -31,6 +30,15 @@ public class CommandActions<RT>(
         Commands.Deploy.SetAction(RunEff(Deploy));
     }
 
+    private Aff<RT, Unit> Deploy(ParseResult parseResult) =>
+        from serverUrl in ArgEff.Server(parseResult)
+        from name in GetRequiredValue(parseResult, Arguments.DeploymentName)
+            .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
+        from extraBuildArgs in ArgEff.ExtraArgs(parseResult)
+        from dataDirectory in ArgEff.DataDirectory(parseResult)
+        from _ in deployDeployment.With(serverUrl, dataDirectory, name, extraBuildArgs)
+        select unit;
+
     private static Eff<T> FromValueObjectValidation<T>(ValueObjectOrError<T> valueOrError) =>
         valueOrError.IsSuccess ? SuccessEff(valueOrError.ValueObject) : FailEff<T>(valueOrError.Error.ErrorMessage);
 
@@ -41,7 +49,32 @@ public class CommandActions<RT>(
         from deploymentInfo in getDeployment.For(serverUrl, name)
         from _ in Eff(fun(() => Console.WriteLine(deploymentInfo)))
         select unit;
-    
+
+    private static Eff<T> GetRequiredValue<T>(ParseResult parseResult, Argument<T> argument) =>
+        Eff(() => parseResult.GetRequiredValue(argument));
+
+    private static Eff<T> GetRequiredValue<T>(ParseResult parseResult, System.CommandLine.Option<T> option) =>
+        Eff(() => parseResult.GetRequiredValue(option));
+
+    private static Eff<LanguageExt.Option<T>> GetValue<T>(ParseResult parseResult, System.CommandLine.Option<T> argument) =>
+        Eff(() => Optional(parseResult.GetValue(argument)));
+
+    private Aff<RT, Unit> Publish(ParseResult parseResult) =>
+        from serverUrl in ArgEff.Server(parseResult)
+        from installable in GetRequiredValue(parseResult, Arguments.Installable)
+            .Bind(v => FromValueObjectValidation(Installable.TryFrom(v)))
+        from ignorePushErrors in GetRequiredValue(parseResult, Options.IgnorePushErrors)
+        from extraBuildArgs in ArgEff.ExtraArgs(parseResult)
+        from _ in publishDeployment.With(serverUrl, installable, ignorePushErrors, extraBuildArgs)
+        select unit;
+
+    private Aff<RT, Unit> Pull(ParseResult parseResult) =>
+        from serverUrl in ArgEff.Server(parseResult)
+        from name in GetRequiredValue(parseResult, Arguments.DeploymentName)
+            .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
+        from _ in pullDeployment.With(serverUrl, name)
+        select unit;
+
     private Aff<RT, Unit> Push(ParseResult parseResult) =>
         from serverUrl in ArgEff.Server(parseResult)
         from name in GetRequiredValue(parseResult, Arguments.DeploymentName)
@@ -52,39 +85,6 @@ public class CommandActions<RT>(
             .Bind(v => FromValueObjectValidation(StorePath.TryFrom(v)))
         from _ in pushDeployment.With(serverUrl, name, storeUrl, path)
         select unit;
-    
-    private Aff<RT, Unit> Pull(ParseResult parseResult) =>
-        from serverUrl in ArgEff.Server(parseResult)
-        from name in GetRequiredValue(parseResult, Arguments.DeploymentName)
-            .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
-        from _ in pullDeployment.With(serverUrl, name)
-        select unit;
-    
-    private Aff<RT, Unit> Publish(ParseResult parseResult) =>
-        from serverUrl in ArgEff.Server(parseResult)
-        from installable in GetRequiredValue(parseResult, Arguments.Installable)
-            .Bind(v => FromValueObjectValidation(Installable.TryFrom(v)))
-        from ignorePushErrors in GetRequiredValue(parseResult, Options.IgnorePushErrors)
-        from extraBuildArgs in ArgEff.ExtraArgs(parseResult)
-        from _ in publishDeployment.With(serverUrl, installable, ignorePushErrors, extraBuildArgs)
-        select unit;
-    
-    private Aff<RT, Unit> Deploy(ParseResult parseResult) =>
-        from serverUrl in ArgEff.Server(parseResult)
-        from name in GetRequiredValue(parseResult, Arguments.DeploymentName)
-            .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
-        from extraBuildArgs in ArgEff.ExtraArgs(parseResult)
-        from _ in deployDeployment.With(serverUrl, name, extraBuildArgs)
-        select unit;
-
-    private static Eff<T> GetRequiredValue<T>(ParseResult parseResult, Argument<T> argument) =>
-        Eff(() => parseResult.GetRequiredValue(argument));
-
-    private static Eff<T> GetRequiredValue<T>(ParseResult parseResult, System.CommandLine.Option<T> option) =>
-        Eff(() => parseResult.GetRequiredValue(option));
-
-    private static Eff<LanguageExt.Option<T>> GetValue<T>(ParseResult parseResult, System.CommandLine.Option<T> argument) =>
-        Eff(() => Optional(parseResult.GetValue(argument)));
 
     private Func<ParseResult, CancellationToken, Task<int>> RunEff(Func<ParseResult, Aff<RT, Unit>> fn) =>
         async (parseResult, cancellationToken) =>
@@ -113,12 +113,16 @@ public class CommandActions<RT>(
 
     private static class ArgEff
     {
-        public static Eff<ServerUrl> Server(ParseResult parseResult) =>
-            GetRequiredValue(parseResult, Options.Server)
-                .Bind(v => FromValueObjectValidation(ServerUrl.TryFrom(new Uri(v))));
+        public static Eff<FilePath> DataDirectory(ParseResult parseResult) =>
+            GetRequiredValue(parseResult, Options.DataDirectory)
+                .Bind(v => FromValueObjectValidation(FilePath.TryFrom(v.FullName)));
 
         public static Eff<NixArgs> ExtraArgs(ParseResult parseResult) =>
             GetRequiredValue(parseResult, Arguments.ExtraArgs)
                 .Bind(v => FromValueObjectValidation(NixArgs.TryFrom(v)));
+
+        public static Eff<ServerUrl> Server(ParseResult parseResult) =>
+            GetRequiredValue(parseResult, Options.Server)
+                .Bind(v => FromValueObjectValidation(ServerUrl.TryFrom(new Uri(v))));
     }
 }
