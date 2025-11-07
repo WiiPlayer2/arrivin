@@ -10,10 +10,13 @@
   debase,
   gitui,
   md-tui,
-  
+
   omnisharp-roslyn,
   netcoredbg,
   dotnetCorePackages,
+
+  arrivin,
+  arrivind,
 }:
 mkShell {
   name = "arrivin-dev";
@@ -31,15 +34,18 @@ mkShell {
           ]}
       '';
     })
-    
+
     git-ignore
     license-cli
     debase
     gitui
     md-tui
-    
+
     omnisharp-roslyn
     netcoredbg
     dotnetCorePackages.dotnet_8.sdk
+
+    arrivin
+    arrivind
   ];
 }

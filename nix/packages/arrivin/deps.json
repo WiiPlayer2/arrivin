@@ -155,6 +155,11 @@
     "hash": "sha256-FU8qj3DR8bDdc1c+WeGZx/PCZeqqndweZM9epcpXjSo="
   },
   {
+    "pname": "Microsoft.Net.Compilers.Toolset",
+    "version": "4.11.0",
+    "hash": "sha256-2xZcdfDQOG0HjQFEj5bJP4IiMgYz5P6Cj10b+MmbfW8="
+  },
+  {
     "pname": "Microsoft.Net.Http.Headers",
     "version": "8.0.0",
     "hash": "sha256-Byowq5bRdxNHHjfxjzq+umnifUyKz0t65xeiB4Bjrkw="
