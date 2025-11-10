@@ -12,10 +12,10 @@ _old_commit=""
 if [ ! -d "$REPO_PATH" ]; then
     git clone "$REMOTE" "$REPO_PATH"
 else
-    _old_commit=$(git rev-parse HEAD)
+    _old_commit=$(git -C "$REPO_PATH" rev-parse HEAD)
     git -C "$REPO_PATH" pull
 fi
-_new_commit=$(git rev-parse HEAD)
+_new_commit=$(git -C "$REPO_PATH" rev-parse HEAD)
 
 if [[ "$_old_commit" != "$_new_commit" ]]; then
     for job in $JOBS; do
