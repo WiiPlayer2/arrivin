@@ -166,6 +166,10 @@ in
           scriptArgs = escapeShellArgs ([
               cfg.client.url
             ] ++ cfg.client.deploy.jobs);
+          stopIfChanged = false;
+          restartIfChanged = false;
+          wants = ["network-online.target"];
+          after = ["network-online.target"];
         };
       };
     })
