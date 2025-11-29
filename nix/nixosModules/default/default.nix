@@ -27,6 +27,16 @@ let
     ];
     text = readFile ./run-deploy.sh;
   };
+
+  networkWaitScript = pkgs.writeShellApplication {
+    name = "wait-for-network";
+    runtimeInputs = with pkgs; [
+      curl
+    ];
+    text = ''
+      until curl -s ${cfg.client.url} > /dev/null; do sleep 1; done
+    '';
+  };
 in
 {
   options.services.arrivin = {
@@ -162,6 +172,9 @@ in
         };
 
         services.arrivin-deploy = {
+          preStart = ''
+            ${pkgs.coreutils}/bin/timeout 30s ${getExe networkWaitScript}
+          '';
           script = "${getExe runDeployScript} \"$@\"";
           scriptArgs = escapeShellArgs ([
               cfg.client.url
