@@ -8,9 +8,10 @@ let
         store,
         path,
         evaluateOnly ? false,
+        impure ? false,
       }:
       {
-        inherit name store;
+        inherit name store impure;
 
         out = path.outPath;
         drv = path.drvPath;

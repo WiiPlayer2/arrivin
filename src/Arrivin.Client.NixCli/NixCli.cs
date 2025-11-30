@@ -57,7 +57,8 @@ public class NixCli<RT>(ILogger<NixCli<RT>> logger) : INix<RT> where RT : struct
 
     public Aff<RT, PublishInfo> EvaluateDeployment(Installable installable, NixArgs extraArgs) =>
         from _10 in Eff(fun(() => logger.LogTrace("Evaluating \"{installable}\" with extra args: {extraArgs}", installable, extraArgs)))
-        from result in CliNix("nix", ["eval", "--json", installable.Value, ..extraArgs.Value])
+        from enrichedExtraArgs in EnrichNixArgs(installable, extraArgs)
+        from result in CliNix("nix", ["eval", "--json", installable.Value, ..enrichedExtraArgs.Value])
         from dto in Eff(() => JsonSerializer.Deserialize<PublishInfoDto>(result.StandardOutput))
         from publishInfo in (
             from name in Optional(dto.Name).ToEff().Map(DeploymentName.From)
@@ -87,4 +88,12 @@ public class NixCli<RT>(ILogger<NixCli<RT>> logger) : INix<RT> where RT : struct
             // .WithStandardOutputPipe(PipeTarget.ToStream(Console.OpenStandardOutput()))
             .WithStandardErrorPipe(PipeTarget.ToStream(Console.OpenStandardError()))
             .ExecuteBufferedAsync(rt.CancellationToken));
+
+    private Aff<RT, NixArgs> EnrichNixArgs(Installable installable, NixArgs extraArgs) =>
+        from result in CliNix("nix", ["eval", "--json", $"{installable}.impure", ..extraArgs.Value])
+        from needImpure in Eff(() => JsonSerializer.Deserialize<bool>(result.StandardOutput))
+        let enrichedArgs = needImpure
+            ? NixArgs.From(["--impure", ..extraArgs.Value])
+            : extraArgs
+        select enrichedArgs;
 }
