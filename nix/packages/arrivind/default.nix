@@ -1,7 +1,6 @@
-{
-  buildDotnetModule,
-
-  dotnetCorePackages,
+{ buildDotnetModule
+, dotnetCorePackages
+,
 }:
 buildDotnetModule {
   pname = "arrivind";

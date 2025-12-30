@@ -1,22 +1,19 @@
-{
-  lib,
-  symlinkJoin,
-  mkShell,
-  makeWrapper,
-
-  helix,
-  git-ignore,
-  license-cli,
-  debase,
-  gitui,
-  md-tui,
-
-  omnisharp-roslyn,
-  netcoredbg,
-  dotnetCorePackages,
-
-  arrivin,
-  arrivind,
+{ lib
+, symlinkJoin
+, mkShell
+, makeWrapper
+, helix
+, git-ignore
+, license-cli
+, debase
+, gitui
+, md-tui
+, omnisharp-roslyn
+, netcoredbg
+, dotnetCorePackages
+, arrivin
+, arrivind
+,
 }:
 mkShell {
   name = "arrivin-dev";

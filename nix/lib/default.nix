@@ -3,12 +3,12 @@ with lib;
 let
   general = {
     cfg =
-      {
-        name,
-        store,
-        path,
-        evaluateOnly ? false,
-        impure ? false,
+      { name
+      , store
+      , path
+      , evaluateOnly ? false
+      , impure ? false
+      ,
       }:
       {
         inherit name store impure;
@@ -21,48 +21,48 @@ let
 
   perSystem =
     genSystems (pkgs:
-    let
-      # based on https://github.com/serokell/deploy-rs/blob/master/flake.nix
-      activate = {
-        custom = base: activate:
-          pkgs.buildEnv {
-            name = ("activatable-" + base.name);
-            paths =
-              [
-                base
-                (pkgs.writeTextFile {
-                  name = base.name + "-activate-path";
-                  text = ''
-                    #!${pkgs.runtimeShell}
-                    set -euo pipefail
+      let
+        # based on https://github.com/serokell/deploy-rs/blob/master/flake.nix
+        activate = {
+          custom = base: activate:
+            pkgs.buildEnv {
+              name = ("activatable-" + base.name);
+              paths =
+                [
+                  base
+                  (pkgs.writeTextFile {
+                    name = base.name + "-activate-path";
+                    text = ''
+                      #!${pkgs.runtimeShell}
+                      set -euo pipefail
 
-                    ${activate}
-                  '';
-                  executable = true;
-                  destination = "/arrivin-activate";
-                })
-              ];
-          };
+                      ${activate}
+                    '';
+                    executable = true;
+                    destination = "/arrivin-activate";
+                  })
+                ];
+            };
 
-        nixos = base:
-          activate.custom
-          base.config.system.build.toplevel
-          ''
-            # work around https://github.com/NixOS/nixpkgs/issues/73404
-            cd /tmp
+          nixos = base:
+            activate.custom
+              base.config.system.build.toplevel
+              ''
+                # work around https://github.com/NixOS/nixpkgs/issues/73404
+                cd /tmp
 
-            nix-env --profile /nix/var/nix/profiles/system --set ${base.config.system.build.toplevel}
-            ${base.config.system.build.toplevel}/bin/switch-to-configuration switch
+                nix-env --profile /nix/var/nix/profiles/system --set ${base.config.system.build.toplevel}
+                ${base.config.system.build.toplevel}/bin/switch-to-configuration switch
 
-            # https://github.com/serokell/deploy-rs/issues/31
-            ${with base.config.boot.loader;
-            optionalString systemd-boot.enable
-            "sed -i '/^default /d' ${efi.efiSysMountPoint}/loader/loader.conf"}
-          '';
-      };
-    in
-    {
-      inherit activate;
-    });
+                # https://github.com/serokell/deploy-rs/issues/31
+                ${with base.config.boot.loader;
+                optionalString systemd-boot.enable
+                "sed -i '/^default /d' ${efi.efiSysMountPoint}/loader/loader.conf"}
+              '';
+        };
+      in
+      {
+        inherit activate;
+      });
 in
 general // perSystem

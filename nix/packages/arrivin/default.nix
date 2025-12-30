@@ -1,10 +1,9 @@
-{
-  lib,
-  buildDotnetModule,
-
-  dotnetCorePackages,
-  makeWrapper,
-  nix,
+{ lib
+, buildDotnetModule
+, dotnetCorePackages
+, makeWrapper
+, nix
+,
 }:
 buildDotnetModule {
   pname = "arrivin";

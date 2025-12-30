@@ -42,7 +42,7 @@ in
   options.services.arrivin = {
     server = {
       enable = mkEnableOption "";
-      package = mkPackageOption pkgs "arrivind" {};
+      package = mkPackageOption pkgs "arrivind" { };
       configFile = mkOption {
         type = types.path;
         default = "${serverConfigFile}";
@@ -77,7 +77,7 @@ in
     };
     client = {
       enable = mkEnableOption "";
-      package = mkPackageOption pkgs "arrivin" {};
+      package = mkPackageOption pkgs "arrivin" { };
 
       url = mkOption {
         type = types.str;
@@ -127,7 +127,7 @@ in
         script = ''
           ${getExe cfg.server.package}
         '';
-        wantedBy = ["multi-user.target"];
+        wantedBy = [ "multi-user.target" ];
       };
 
       services.arrivin.server.settings = {
@@ -147,17 +147,17 @@ in
             OnBootSec = "10 min";
             OnUnitInactiveSec = "2 h";
           };
-          wantedBy = ["multi-user.target"];
+          wantedBy = [ "multi-user.target" ];
         };
 
         services.arrivin-publish = {
           script = "${getExe runPublishScript} \"$@\"";
           scriptArgs = escapeShellArgs ([
-              cfg.client.url
-              "/var/lib/arrivin/repository"
-              cfg.client.publish.remote
-              (if cfg.client.publish.ignorePushErrors then "--ignore-push-errors" else "")
-            ] ++ cfg.client.publish.jobs);
+            cfg.client.url
+            "/var/lib/arrivin/repository"
+            cfg.client.publish.remote
+            (if cfg.client.publish.ignorePushErrors then "--ignore-push-errors" else "")
+          ] ++ cfg.client.publish.jobs);
         };
       };
     })
@@ -168,7 +168,7 @@ in
             OnBootSec = "10 min";
             OnUnitInactiveSec = "2 h";
           };
-          wantedBy = ["multi-user.target"];
+          wantedBy = [ "multi-user.target" ];
         };
 
         services.arrivin-deploy = {
@@ -177,12 +177,12 @@ in
           '';
           script = "${getExe runDeployScript} \"$@\"";
           scriptArgs = escapeShellArgs ([
-              cfg.client.url
-            ] ++ cfg.client.deploy.jobs);
+            cfg.client.url
+          ] ++ cfg.client.deploy.jobs);
           stopIfChanged = false;
           restartIfChanged = false;
-          wants = ["network-online.target"];
-          after = ["network-online.target"];
+          wants = [ "network-online.target" ];
+          after = [ "network-online.target" ];
         };
       };
     })
