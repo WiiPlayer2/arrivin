@@ -114,15 +114,33 @@ in
     (mkIf cfg.server.enable {
       environment.systemPackages = [ cfg.server.package ];
 
+      systemd.tmpfiles.settings."10-arrivind".${cfg.server.config.dataDir}.d = {
+        mode = "0700";
+      };
+
       systemd.services.arrivind = {
         environment = {
           ARRIVIND_CONFIG = cfg.server.configFile;
           ASPNETCORE_ENVIRONMENT = mkIf cfg.server.debug "Development";
         };
+        path = with pkgs; [
+          iproute2
+        ];
         script = ''
           ${getExe cfg.server.package}
         '';
+        postStart = ''
+          while ! ss -H -t -l -n sport = :${toString cfg.server.config.listen.port} | grep -q "^LISTEN.*:${toString cfg.server.config.listen.port}"; do
+            sleep 1
+          done
+        '';
+        serviceConfig = {
+          WorkingDirectory = cfg.server.config.dataDir;
+          TimeoutStartSec = "30s";
+        };
         wantedBy = [ "multi-user.target" ];
+        wants = [ "network-online.target" ];
+        after = [ "network-online.target" ];
       };
 
       services.arrivin.server.settings = {
