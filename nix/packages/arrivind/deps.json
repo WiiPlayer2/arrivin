@@ -5,9 +5,24 @@
     "hash": "sha256-wTtSe+5Ga4y84m+iGPCimq7UZMoH/HDZKuaL926JU68="
   },
   {
+    "pname": "CliWrap",
+    "version": "3.10.0",
+    "hash": "sha256-XMGTr0gkZxSOC72hrCjpIChpN0c0A19X3TqOAdBtgb4="
+  },
+  {
+    "pname": "EasyCompressor",
+    "version": "2.1.0",
+    "hash": "sha256-pD2TrmoJhi3dLkQ3OVGZ+tYSG4zvl4vhO+StQ9jw35c="
+  },
+  {
+    "pname": "EasyCompressor.ZstdSharp",
+    "version": "2.1.0",
+    "hash": "sha256-KTfCNPOZG+5cqRMfoH02xh2bB2oQCqFNAIio88faqQU="
+  },
+  {
     "pname": "FunicularSwitch.Generators",
-    "version": "4.5.1",
-    "hash": "sha256-og61c0MwS6gwhNeGEjBvlGZT97WZrg1/4tOpnthjJ1I="
+    "version": "4.6.0",
+    "hash": "sha256-Sied9BSAq7js69nOCd4xeOe3x9x0DdPmCBbRuzI+WMo="
   },
   {
     "pname": "GreenDonut",
@@ -243,6 +258,11 @@
     "pname": "Microsoft.Extensions.DependencyInjection.Abstractions",
     "version": "8.0.2",
     "hash": "sha256-UfLfEQAkXxDaVPC7foE/J3FVEXd31Pu6uQIhTic3JgY="
+  },
+  {
+    "pname": "Microsoft.Extensions.DependencyInjection.Abstractions",
+    "version": "9.0.4",
+    "hash": "sha256-6WcGpsAYRhrpHloEom0oVP7Ff4Gh/O1XWJETJJ3LvEQ="
   },
   {
     "pname": "Microsoft.Extensions.ObjectPool",
@@ -556,12 +576,17 @@
   },
   {
     "pname": "Vogen",
-    "version": "8.0.2",
-    "hash": "sha256-ktmEgd8gyHoXc93zZBpwKVwpNs9MxL7Iyhy5+q3OYE0="
+    "version": "8.0.4",
+    "hash": "sha256-lZawnq835aO2fJdZnGqyJEnTQVIQNVUK+lg4Fv2bLSU="
   },
   {
     "pname": "Yarp.ReverseProxy",
     "version": "2.3.0",
     "hash": "sha256-/xLvX5xGw/PoFVdaRbdZjGgEO56xAamqsY7TvYwCWiQ="
+  },
+  {
+    "pname": "ZstdSharp.Port",
+    "version": "0.8.5",
+    "hash": "sha256-+UQFeU64md0LlSf9nMXif6hHnfYEKm+WRyYd0Vo2QvI="
   }
 ]
