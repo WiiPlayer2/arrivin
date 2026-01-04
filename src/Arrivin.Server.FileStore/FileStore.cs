@@ -33,13 +33,11 @@ public class FileStore<RT>(
         select unit;
 
     private Eff<DeploymentInfo> Map(DeploymentInfoDto dto) =>
-        from storeUrl in Optional(dto.StoreUrl).ToEff().Map(v => StoreUrl.From(new Uri(v)))
         from derivation in Optional(dto.Derivation).ToEff().Map(StorePath.From)
         let outPath = Optional(dto.OutPath).Map(StorePath.From)
-        select new DeploymentInfo(storeUrl, derivation, outPath);
+        select new DeploymentInfo(derivation, outPath);
 
     private DeploymentInfoDto Map(DeploymentInfo info) => new(
-        info.StoreUrl.Value.ToString(),
         info.Derivation.Value,
         info.OutPath.IfNoneUnsafe(() => null)?.Value
     );

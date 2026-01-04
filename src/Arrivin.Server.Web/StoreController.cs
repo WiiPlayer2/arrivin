@@ -12,7 +12,7 @@ namespace Arrivin.Server.Web;
 
 [Route("store")]
 [Controller]
-public class StoreController(IConfiguration configuration) : ControllerBase
+public class StoreController(IConfiguration configuration, ILogger<StoreController> logger) : ControllerBase
 {
     private readonly string cachePath = configuration.GetValue<string>("NarCachePath")!;
 
@@ -46,7 +46,10 @@ public class StoreController(IConfiguration configuration) : ControllerBase
                 .Add(["path-info", "--json", storePath])
             )
             .ExecuteBufferedAsync(cancellationToken);
-        var pathInfo = JsonSerializer.Deserialize<PathInfo[]>(cliResult2.StandardOutput)!.First();
+        if(!string.IsNullOrEmpty(cliResult2.StandardError))
+            logger.LogError("nix path-info: {error}", cliResult2.StandardError);
+        logger.LogTrace("nix path-info: {output}", cliResult2.StandardOutput);
+        var pathInfo = ReadPathInfo(cliResult2.StandardOutput);
 
         var narInfoBuilder = new StringBuilder();
         narInfoBuilder.AppendLine($"""
@@ -69,6 +72,16 @@ public class StoreController(IConfiguration configuration) : ControllerBase
 
         var narInfo = narInfoBuilder.ToString();
         return Results.Text(narInfo);
+
+        PathInfo ReadPathInfo(string json)
+        {
+            var jsonElement = JsonSerializer.Deserialize<JsonElement>(json);
+            return jsonElement.ValueKind switch
+            {
+                JsonValueKind.Array => jsonElement.Deserialize<PathInfo[]>()!.First(),
+                JsonValueKind.Object => jsonElement.Deserialize<Dictionary<string, PathInfo>>()!.Values.First(),
+            };
+        }
     }
 
     [Route("{hash}.narinfo")]

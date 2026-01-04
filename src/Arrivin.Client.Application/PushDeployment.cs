@@ -7,12 +7,11 @@ public class PushDeployment<RT>(
     INix<RT> nix
 ) where RT : struct, HasCancel<RT>
 {
-    public Aff<RT, Unit> With(ServerUrl serverUrl, DeploymentName name, StoreUrl store, StorePath path, Option<StoreUrl> useStoreOption) =>
-        from _10 in nix.CopyTo(useStoreOption.IfNone(store), path)
+    public Aff<RT, Unit> With(ServerUrl serverUrl, DeploymentName name, StorePath path) =>
+        from _10 in nix.CopyTo(serverUrl.Store, path)
         from derivation in nix.GetDerivation(path)
         let outPath = path == derivation ? None : Some(path)
         let deploymentInfo = new DeploymentInfo(
-            store,
             derivation,
             outPath
         )

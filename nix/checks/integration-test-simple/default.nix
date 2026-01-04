@@ -23,13 +23,12 @@ let
   clientMachineModule =
     {
       services.arrivin.client = {
-        url = "http://localhost:5014/graphql";
+        url = "http://localhost:5014/";
       };
     };
 
   arrivinJob = outputs.lib.cfg {
     name = "test";
-    store = "unix:///nix/var/nix/daemon-socket/socket";
     path = outputs.lib.${stdenv.system}.activate.custom hello ''
       ${getExe hello}
     '';
@@ -52,6 +51,7 @@ testers.runNixOSTest {
       services.arrivin = {
         server = {
           enable = true;
+          # settings.Logging.LogLevel."Arrivin.Server.Web.StoreController" = "Trace";
         };
 
         client = {
@@ -74,7 +74,7 @@ testers.runNixOSTest {
   testScript = ''
     machine.wait_for_unit("arrivind.service")
     machine.wait_for_unit("default.target")
-    machine.succeed("arrivin -u http://localhost:5014/graphql push ${arrivinJob.name} ${arrivinJob.out} --store ${arrivinJob.store}")
-    print(machine.succeed("arrivin -u http://localhost:5014/graphql deploy ${arrivinJob.name}"))
+    machine.succeed("arrivin -u http://localhost:5014/ push ${arrivinJob.name} ${arrivinJob.out}")
+    print(machine.succeed("arrivin -u http://localhost:5014/ deploy ${arrivinJob.name}"))
   '';
 }

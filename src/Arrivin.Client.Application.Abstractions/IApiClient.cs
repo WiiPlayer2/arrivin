@@ -4,7 +4,7 @@ namespace Arrivin.Client.Application;
 
 public interface IApiClient<RT> where RT : struct, HasCancel<RT>
 {
-    Aff<RT, Option<DeploymentInfo>> GetDeployment(ServerUrl serverUrl, DeploymentName name);
+    Aff<RT, Option<DeploymentInfo>> GetDeployment(ApiUrl apiUrl, DeploymentName name);
 
-    Aff<RT, Unit> SetDeployment(ServerUrl serverUrl, DeploymentName name, DeploymentInfo deploymentInfo);
+    Aff<RT, Unit> SetDeployment(ApiUrl apiUrl, DeploymentName name, DeploymentInfo deploymentInfo);
 }

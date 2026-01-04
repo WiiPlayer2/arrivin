@@ -10,13 +10,13 @@ public class DeployDeployment<RT>(
     IFileSystem<RT> fileSystem
 ) where RT : struct, HasCancel<RT>
 {
-    public Aff<RT, Unit> With(ServerUrl serverUrl, FilePath dataDirectory, DeploymentName name, NixArgs extraBuildArgs, Option<StoreUrl> useStoreOption = default) =>
+    public Aff<RT, Unit> With(ServerUrl serverUrl, FilePath dataDirectory, DeploymentName name, NixArgs extraBuildArgs) =>
         from deploymentInfo in getDeployment.For(serverUrl, name)
             .Bind(x => x.ToEff())
         from links in ReadLinks(dataDirectory, name)
         let needsPulling = NeedsPulling(deploymentInfo, links)
         from _10 in needsPulling
-            ? from _05 in PullDeployment(dataDirectory, serverUrl, name, useStoreOption)
+            ? from _05 in PullDeployment(dataDirectory, serverUrl, name)
               from outPath in ProduceOutput(dataDirectory, name, deploymentInfo, extraBuildArgs)
               from _10 in Activate(dataDirectory, name, deploymentInfo.Derivation, outPath)
               select unit
@@ -75,8 +75,8 @@ public class DeployDeployment<RT>(
         from _10 in AddRoot(dataDirectory, FileName.From($"{name}-current.out"), outPath)
         select outPath;
 
-    private Aff<RT, DeploymentInfo> PullDeployment(FilePath dataDirectory, ServerUrl serverUrl, DeploymentName name, Option<StoreUrl> useStoreOption) =>
-        from deploymentInfo in pullDeployment.With(serverUrl, name, useStoreOption)
+    private Aff<RT, DeploymentInfo> PullDeployment(FilePath dataDirectory, ServerUrl serverUrl, DeploymentName name) =>
+        from deploymentInfo in pullDeployment.With(serverUrl, name)
         from _10 in deploymentInfo.OutPath
             .Map<Aff<RT, Unit>>(_ => unitAff)
             .IfNone(() => AddRoot(dataDirectory, FileName.From($"{name}-current.drv"), deploymentInfo.Derivation))

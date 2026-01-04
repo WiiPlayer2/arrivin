@@ -13,7 +13,6 @@ public partial record DeploymentName;
 public partial record StoreUrl;
 
 public record DeploymentInfo(
-    StoreUrl StoreUrl,
     StorePath Derivation,
     Option<StorePath> OutPath
 );

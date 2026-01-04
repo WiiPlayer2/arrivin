@@ -36,8 +36,7 @@ public class CommandActions<RT>(
             .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
         from extraBuildArgs in ArgEff.ExtraArgs(parseResult)
         from dataDirectory in ArgEff.DataDirectory(parseResult)
-        from useStoreOption in ArgEff.UseStore(parseResult)
-        from _ in deployDeployment.With(serverUrl, dataDirectory, name, extraBuildArgs, useStoreOption)
+        from _ in deployDeployment.With(serverUrl, dataDirectory, name, extraBuildArgs)
         select unit;
 
     private static Eff<T> FromValueObjectValidation<T>(ValueObjectOrError<T> valueOrError) =>
@@ -66,28 +65,23 @@ public class CommandActions<RT>(
             .Bind(v => FromValueObjectValidation(Installable.TryFrom(v)))
         from ignorePushErrors in GetRequiredValue(parseResult, Options.IgnorePushErrors)
         from extraBuildArgs in ArgEff.ExtraArgs(parseResult)
-        from useStoreOption in ArgEff.UseStore(parseResult)
-        from _ in publishDeployment.With(serverUrl, installable, ignorePushErrors, extraBuildArgs, useStoreOption)
+        from _ in publishDeployment.With(serverUrl, installable, ignorePushErrors, extraBuildArgs)
         select unit;
 
     private Aff<RT, Unit> Pull(ParseResult parseResult) =>
         from serverUrl in ArgEff.Server(parseResult)
         from name in GetRequiredValue(parseResult, Arguments.DeploymentName)
             .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
-        from useStoreOption in ArgEff.UseStore(parseResult)
-        from _ in pullDeployment.With(serverUrl, name, useStoreOption)
+        from _ in pullDeployment.With(serverUrl, name)
         select unit;
 
     private Aff<RT, Unit> Push(ParseResult parseResult) =>
         from serverUrl in ArgEff.Server(parseResult)
         from name in GetRequiredValue(parseResult, Arguments.DeploymentName)
             .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
-        from storeUrl in GetRequiredValue(parseResult, Options.Store)
-            .Bind(v => FromValueObjectValidation(StoreUrl.TryFrom(new Uri(v))))
         from path in GetRequiredValue(parseResult, Arguments.Path)
             .Bind(v => FromValueObjectValidation(StorePath.TryFrom(v)))
-        from useStoreOption in ArgEff.UseStore(parseResult)
-        from _ in pushDeployment.With(serverUrl, name, storeUrl, path, useStoreOption)
+        from _ in pushDeployment.With(serverUrl, name, path)
         select unit;
 
     private Func<ParseResult, CancellationToken, Task<int>> RunEff(Func<ParseResult, Aff<RT, Unit>> fn) =>
@@ -105,13 +99,11 @@ public class CommandActions<RT>(
         from serverUrl in ArgEff.Server(parseResult)
         from name in GetRequiredValue(parseResult, Arguments.DeploymentName)
             .Bind(v => FromValueObjectValidation(DeploymentName.TryFrom(v)))
-        from storeUrl in GetRequiredValue(parseResult, Options.Store)
-            .Bind(v => FromValueObjectValidation(StoreUrl.TryFrom(new Uri(v))))
         from derivation in GetRequiredValue(parseResult, Options.Derivation)
             .Bind(v => FromValueObjectValidation(StorePath.TryFrom(v)))
         from outPathOption in GetValue(parseResult, Options.OutPath)
             .Bind(vOption => vOption.Map(v => FromValueObjectValidation(StorePath.TryFrom(v))).Traverse(_ => _))
-        let deploymentInfo = new DeploymentInfo(storeUrl, derivation, outPathOption.ValueUnsafe())
+        let deploymentInfo = new DeploymentInfo(derivation, outPathOption.ValueUnsafe())
         from _ in setDeployment.For(serverUrl, name, deploymentInfo)
         select unit;
 
@@ -128,9 +120,6 @@ public class CommandActions<RT>(
         public static Eff<ServerUrl> Server(ParseResult parseResult) =>
             GetRequiredValue(parseResult, Options.Server)
                 .Bind(v => FromValueObjectValidation(ServerUrl.TryFrom(new Uri(v))));
-
-        public static Eff<LanguageExt.Option<StoreUrl>> UseStore(ParseResult parseResult) =>
-            From(parseResult, Options.UseStore.Name, (string v) => StoreUrl.TryFrom(new Uri(v)));
 
         private static Eff<TValueObject> FromRequired<TValue, TValueObject>(
             ParseResult parseResult,

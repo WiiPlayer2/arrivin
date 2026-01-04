@@ -41,7 +41,7 @@ public class DeployDeploymentTest
     public async Task WithOutdatedDerivationAndOutputLinks()
     {
         // Arrange
-        var serverUrl = ServerUrl.From(new Uri("http://server/graphql"));
+        var serverUrl = ServerUrl.From(new Uri("http://server/"));
         var name = DeploymentName.From("test");
         var extraBuildArgs = NixArgs.From([]);
         var dataDirectory = FilePath.From("/var/lib/arrivin");
@@ -49,8 +49,8 @@ public class DeployDeploymentTest
         var runtime = Runtime.New();
 
         testEnvironment.ApiClient
-            .Setup(x => x.GetDeployment(It.IsAny<ServerUrl>(), It.IsAny<DeploymentName>()))
-            .Returns(SuccessAff(Some(new DeploymentInfo(StoreUrl.From(new Uri("ssh://store")), StorePath.From("/nix/store/test.drv"), None))));
+            .Setup(x => x.GetDeployment(It.IsAny<ApiUrl>(), It.IsAny<DeploymentName>()))
+            .Returns(SuccessAff(Some(new DeploymentInfo(StorePath.From("/nix/store/test.drv"), None))));
 
         testEnvironment.Nix
             .Setup(x => x.Build(It.IsAny<StorePath>(), It.IsAny<NixArgs>()))
@@ -86,7 +86,7 @@ public class DeployDeploymentTest
     public async Task WithoutDerivationAndOutputLinks()
     {
         // Arrange
-        var serverUrl = ServerUrl.From(new Uri("http://server/graphql"));
+        var serverUrl = ServerUrl.From(new Uri("http://server/"));
         var name = DeploymentName.From("test");
         var extraBuildArgs = NixArgs.From([]);
         var dataDirectory = FilePath.From("/var/lib/arrivin");
@@ -94,8 +94,8 @@ public class DeployDeploymentTest
         var runtime = Runtime.New();
 
         testEnvironment.ApiClient
-            .Setup(x => x.GetDeployment(It.IsAny<ServerUrl>(), It.IsAny<DeploymentName>()))
-            .Returns(SuccessAff(Some(new DeploymentInfo(StoreUrl.From(new Uri("ssh://store")), StorePath.From("/nix/store/test.drv"), None))));
+            .Setup(x => x.GetDeployment(It.IsAny<ApiUrl>(), It.IsAny<DeploymentName>()))
+            .Returns(SuccessAff(Some(new DeploymentInfo(StorePath.From("/nix/store/test.drv"), None))));
 
         testEnvironment.Nix
             .Setup(x => x.Build(It.IsAny<StorePath>(), It.IsAny<NixArgs>()))
@@ -126,7 +126,7 @@ public class DeployDeploymentTest
     public async Task WithSameDerivationLink()
     {
         // Arrange
-        var serverUrl = ServerUrl.From(new Uri("http://server/graphql"));
+        var serverUrl = ServerUrl.From(new Uri("http://server/"));
         var name = DeploymentName.From("test");
         var extraBuildArgs = NixArgs.From([]);
         var dataDirectory = FilePath.From("/var/lib/arrivin");
@@ -134,8 +134,8 @@ public class DeployDeploymentTest
         var runtime = Runtime.New();
 
         testEnvironment.ApiClient
-            .Setup(x => x.GetDeployment(It.IsAny<ServerUrl>(), It.IsAny<DeploymentName>()))
-            .Returns(SuccessAff(Some(new DeploymentInfo(StoreUrl.From(new Uri("ssh://store")), StorePath.From("/nix/store/test.drv"), None))));
+            .Setup(x => x.GetDeployment(It.IsAny<ApiUrl>(), It.IsAny<DeploymentName>()))
+            .Returns(SuccessAff(Some(new DeploymentInfo(StorePath.From("/nix/store/test.drv"), None))));
 
         testEnvironment.Nix
             .Setup(x => x.Build(It.IsAny<StorePath>(), It.IsAny<NixArgs>()))

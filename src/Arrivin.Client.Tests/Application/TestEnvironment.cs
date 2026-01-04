@@ -12,10 +12,10 @@ internal class TestEnvironment<RT> where RT : struct, HasCancel<RT>
     public TestEnvironment()
     {
         ApiClient
-            .Setup(x => x.GetDeployment(It.IsAny<ServerUrl>(), It.IsAny<DeploymentName>()))
+            .Setup(x => x.GetDeployment(It.IsAny<ApiUrl>(), It.IsAny<DeploymentName>()))
             .Returns(Prelude.SuccessAff(Option<DeploymentInfo>.None));
         ApiClient
-            .Setup(x => x.SetDeployment(It.IsAny<ServerUrl>(), It.IsAny<DeploymentName>(), It.IsAny<DeploymentInfo>()))
+            .Setup(x => x.SetDeployment(It.IsAny<ApiUrl>(), It.IsAny<DeploymentName>(), It.IsAny<DeploymentInfo>()))
             .Returns(Prelude.unitAff);
 
         Nix

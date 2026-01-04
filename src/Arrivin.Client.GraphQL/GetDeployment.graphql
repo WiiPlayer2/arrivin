@@ -1,6 +1,5 @@
 query GetDeployment($name: String!) {
     deployment(name: $name) {
-        storeUrl
         derivation
         outPath
     }
