@@ -37,19 +37,15 @@ public class StoreController(IConfiguration configuration, ILogger<StoreControll
             .WithValidation(CommandResultValidation.None)
             .ExecuteBufferedAsync(cancellationToken);
 
-        if (!cliResult.IsSuccess) return Results.NotFound();
-        
+        if (!string.IsNullOrEmpty(cliResult.StandardError))
+            logger.LogError("nix path-from-hash-part: {error}", cliResult.StandardError);
+        logger.LogTrace("nix path-from-hash-part: {output}", cliResult.StandardOutput);
+            
+        if (!cliResult.IsSuccess)
+            return Results.NotFound();
+
         var storePath = cliResult.StandardOutput.Trim();
-        var cliResult2 = await Cli.Wrap("nix")
-            .WithArguments(builder => builder
-                .Add(["--experimental-features", "nix-command"])
-                .Add(["path-info", "--json", storePath])
-            )
-            .ExecuteBufferedAsync(cancellationToken);
-        if(!string.IsNullOrEmpty(cliResult2.StandardError))
-            logger.LogError("nix path-info: {error}", cliResult2.StandardError);
-        logger.LogTrace("nix path-info: {output}", cliResult2.StandardOutput);
-        var pathInfo = ReadPathInfo(cliResult2.StandardOutput);
+        var pathInfo = await ResolvePathInfo(storePath, cancellationToken) ?? throw new InvalidOperationException();
 
         var narInfoBuilder = new StringBuilder();
         narInfoBuilder.AppendLine($"""
@@ -72,16 +68,6 @@ public class StoreController(IConfiguration configuration, ILogger<StoreControll
 
         var narInfo = narInfoBuilder.ToString();
         return Results.Text(narInfo);
-
-        PathInfo ReadPathInfo(string json)
-        {
-            var jsonElement = JsonSerializer.Deserialize<JsonElement>(json);
-            return jsonElement.ValueKind switch
-            {
-                JsonValueKind.Array => jsonElement.Deserialize<PathInfo[]>()!.First(),
-                JsonValueKind.Object => jsonElement.Deserialize<Dictionary<string, PathInfo>>()!.Values.First(),
-            };
-        }
     }
 
     [Route("{hash}.narinfo")]
@@ -93,11 +79,13 @@ public class StoreController(IConfiguration configuration, ILogger<StoreControll
         await buffer.FlushAsync(cancellationToken);
         
         var text = Encoding.UTF8.GetString(buffer.ToArray());
+        logger.LogTrace("nar info:\n{narInfo}", text);
 
         string storePath = default!;
         string fileHash = default!;
         var references = Array.Empty<string>();
         string? deriver = default;
+        var compression = "none";
         foreach (var line in text.Split('\n'))
         {
             var splitIndex = line.IndexOf(':');
@@ -123,21 +111,27 @@ public class StoreController(IConfiguration configuration, ILogger<StoreControll
                 case "Deriver":
                     deriver = propertyValue;
                     break;
+                
+                case "Compression":
+                    compression = propertyValue.ToLowerInvariant();
+                    break;
             }
         }
 
         var narHash = fileHash[7..];
-        var narPath = Path.Join(TMP_DOWNLOAD_PATH.FullName, $"{narHash}.nar.zst");
-        
-        if (!Directory.Exists(storePath))
+        var (compressionExtension, decompress) = ResolveCompression(compression);
+        var narPath = Path.Join(TMP_DOWNLOAD_PATH.FullName, $"{narHash}.nar{compressionExtension}");
+        var pathInfo = await ResolvePathInfo(storePath, cancellationToken);
+        if (pathInfo is null)
         {
+            logger.LogDebug("Importing NAR into {storePath}", storePath);
+            
             using var importStream = new MemoryStream();
 
             await WriteNarLong(importStream, 1L, cancellationToken);
 
             await using var compressedNar = IOFile.OpenRead(narPath);
-            var compressor = new ZstdSharpCompressor();
-            await compressor.DecompressAsync(compressedNar, importStream, cancellationToken);
+            await decompress(compressedNar, importStream, cancellationToken);
 
             await importStream.WriteAsync("NIXE\0\0\0\0"u8.ToArray(), cancellationToken);
             await WriteNixString(importStream, storePath, cancellationToken);
@@ -211,11 +205,11 @@ public class StoreController(IConfiguration configuration, ILogger<StoreControll
         return Results.NotFound();
     }
 
-    [Route("nar/{hash}.nar.zst")]
+    [Route("nar/{hash}.nar{compressionExtension}")]
     [HttpPut]
-    public async Task<IResult> PutCompressedNar(string hash, CancellationToken cancellationToken)
+    public async Task<IResult> PutCompressedNar(string hash, string compressionExtension, CancellationToken cancellationToken)
     {
-        var downloadPath = Path.Join(TMP_DOWNLOAD_PATH.FullName, $"{hash}.nar.zst");
+        var downloadPath = Path.Join(TMP_DOWNLOAD_PATH.FullName, $"{hash}.nar{compressionExtension}");
         await using var fileStream = IOFile.Create(downloadPath);
         await HttpContext.Request.Body.CopyToAsync(fileStream, cancellationToken);
         await fileStream.FlushAsync(cancellationToken);
@@ -253,5 +247,61 @@ public class StoreController(IConfiguration configuration, ILogger<StoreControll
             Array.Reverse(valueBytes);
 
         await stream.WriteAsync(valueBytes, cancellationToken);
+    }
+
+    private (string Extension, Func<Stream, Stream, CancellationToken, Task> Decompress) ResolveCompression(string compression)
+    {
+        return compression switch
+        {
+            "none" => (string.Empty, None),
+            "zstd" => (".zst", Zstd),
+            "xz" => (".xz", Xz),
+        };
+        
+        static Task None(Stream input, Stream output, CancellationToken cancellationToken) => input.CopyToAsync(output, cancellationToken);
+
+        static async Task Zstd(Stream input, Stream output, CancellationToken cancellationToken)
+        {
+            var compressor = new ZstdSharpCompressor();
+            await compressor.DecompressAsync(input, output, cancellationToken);
+        }
+        
+        static async Task Xz(Stream input, Stream output, CancellationToken cancellationToken)
+        {
+            await Cli.Wrap("xz")
+                .WithArguments(["-d", "-c"])
+                .WithStandardInputPipe(PipeSource.FromStream(input))
+                .WithStandardOutputPipe(PipeTarget.ToStream(output))
+                .ExecuteAsync(cancellationToken);
+        }
+    }
+
+    private async Task<PathInfo?> ResolvePathInfo(string storePath, CancellationToken cancellationToken)
+    {
+        var cliResult2 = await Cli.Wrap("nix")
+            .WithArguments(builder => builder
+                .Add(["--experimental-features", "nix-command"])
+                .Add(["path-info", "--json", storePath])
+            )
+            .WithValidation(CommandResultValidation.None)
+            .ExecuteBufferedAsync(cancellationToken);
+        
+        if(!string.IsNullOrEmpty(cliResult2.StandardError))
+            logger.LogTrace("nix path-info: {error}", cliResult2.StandardError);
+        logger.LogTrace("nix path-info: {output}", cliResult2.StandardOutput);
+        
+        if (!cliResult2.IsSuccess) return null;
+        
+        var pathInfo = ReadPathInfo(cliResult2.StandardOutput);
+        return pathInfo;
+        PathInfo ReadPathInfo(string json)
+        {
+            var jsonElement = JsonSerializer.Deserialize<JsonElement>(json);
+            return jsonElement.ValueKind switch
+            {
+                JsonValueKind.Array => jsonElement.Deserialize<PathInfo[]>()!.First(),
+                JsonValueKind.Object => jsonElement.Deserialize<Dictionary<string, PathInfo>>()!.Values.First(),
+            };
+        }
     }
 }

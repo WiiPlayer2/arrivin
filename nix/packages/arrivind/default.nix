@@ -3,6 +3,7 @@
 , dotnetCorePackages
 , makeWrapper
 , nix
+, xz
 ,
 }:
 buildDotnetModule {
@@ -21,7 +22,7 @@ buildDotnetModule {
     "--prefix"
     "PATH"
     ":"
-    (lib.makeBinPath [ nix ])
+    (lib.makeBinPath [ nix xz ])
   ];
 
   meta = {

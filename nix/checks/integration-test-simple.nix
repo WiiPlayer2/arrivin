@@ -72,7 +72,6 @@ testers.runNixOSTest {
     };
   };
   testScript = ''
-    machine.wait_for_unit("arrivind.service")
     machine.wait_for_unit("default.target")
     machine.succeed("arrivin -u http://localhost:5014/ push ${arrivinJob.name} ${arrivinJob.out}")
     print(machine.succeed("arrivin -u http://localhost:5014/ deploy ${arrivinJob.name}"))
