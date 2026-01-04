@@ -35,6 +35,9 @@ builder.Services.AddSingleton(new Runner<Runtime>(ct =>
 builder.Services.AddApplicationServices<Runtime>();
 builder.Services.AddFileStore<Runtime>();
 
+builder.Services.AddControllers();
+
 var app = builder.Build();
+app.MapControllers();
 app.MapGraphQL();
 app.Run();
