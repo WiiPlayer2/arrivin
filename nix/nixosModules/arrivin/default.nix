@@ -98,6 +98,11 @@ in
           type = types.bool;
           default = false;
         };
+
+        extraArgs = mkOption {
+          type = with types; listOf str;
+          default = [];
+        };
       };
 
       deploy = {
@@ -169,7 +174,8 @@ in
             cfg.client.url
             "/var/lib/arrivin/repository"
             cfg.client.publish.remote
-            (if cfg.client.publish.ignorePushErrors then "--ignore-push-errors" else "")
+            (if cfg.client.publish.ignorePushErrors then "--ignore-push-errors" else "--ignore-push-errors=false")
+            (escapeShellArg (escapeShellArgs cfg.client.publish.extraArgs))
           ] ++ cfg.client.publish.jobs);
         };
       };

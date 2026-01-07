@@ -15,7 +15,10 @@ public partial record ServerUrl
 public partial record ApiUrl;
 
 [ValueObject<IReadOnlyList<string>>(fromPrimitiveCasting: CastOperator.None, toPrimitiveCasting: CastOperator.None)]
-public partial record NixArgs;
+public partial record NixArgs
+{
+    public sealed override string ToString() => $"[{string.Join(" ", Value.Select(x => $"\"{x}\""))}]";
+}
 
 [ValueObject<string>]
 public partial record FilePath
