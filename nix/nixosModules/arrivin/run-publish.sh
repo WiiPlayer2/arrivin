@@ -3,6 +3,10 @@ REPO_PATH="$2"
 REMOTE="$3"
 IGNORE_PUSH_ERRORS_ARG="$4"
 NIX_ARGS=("$5")
+if [[ "$5" == "''" ]]; then
+    NIX_ARGS=()
+fi
+
 shift
 shift
 shift
