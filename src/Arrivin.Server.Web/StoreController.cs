@@ -5,6 +5,7 @@ using CliWrap;
 using CliWrap.Buffered;
 using EasyCompressor;
 using LanguageExt;
+using LanguageExt.UnitsOfMeasure;
 using Microsoft.AspNetCore.Mvc;
 using Path = System.IO.Path;
 using IOFile = System.IO.File;
@@ -234,7 +235,10 @@ public class StoreController(IConfiguration configuration, ILogger<StoreControll
         Aff<Unit> WriteStoreImportPackage(Stream stream) =>
             from _10 in WriteNarLong2(stream, 1L, cancellationToken)
             from _20 in use(
-                Eff(() => IOFile.Open(narPath, FileMode.Open, FileAccess.Read, FileShare.Read)),
+                retry(
+                    Schedule.repeat(5) | Schedule.exponential(1.Seconds()),
+                    Eff(() => IOFile.Open(narPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                ),
                 compressedNar => Aff(() => decompress(compressedNar, stream, cancellationToken).ToUnit().ToValue())
             )
             from _30 in Aff(() => stream.WriteAsync("NIXE\0\0\0\0"u8.ToArray(), cancellationToken).ToUnit())
