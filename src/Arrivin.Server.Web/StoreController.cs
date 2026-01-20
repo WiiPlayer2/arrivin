@@ -213,8 +213,18 @@ public class StoreController(IConfiguration configuration, ILogger<StoreControll
         }
 
         IOFile.Delete(narPath);
-        Directory.CreateDirectory(Path.Join(cachePath, "links"));
-        Directory.CreateSymbolicLink(Path.Join(cachePath, "links", narHash), storePath);
+        try
+        {
+            Directory.CreateDirectory(Path.Join(cachePath, "links"));
+            var symlink = new FileInfo(Path.Join(cachePath, "links", narHash));
+            if(symlink.Exists)
+                symlink.Delete();
+            symlink.CreateAsSymbolicLink(storePath);
+        }
+        catch (Exception e)
+        {
+            logger.LogWarning(e, "Failed to create symlink for {narHash}.", narHash);
+        }
 
         return Results.Ok();
     }
