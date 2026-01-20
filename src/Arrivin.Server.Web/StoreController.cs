@@ -200,7 +200,7 @@ public class StoreController(IConfiguration configuration, ILogger<StoreControll
             }
             catch (Exception e)
             {
-                logger.LogWarning(e, "Failed to import. Repairing path and trying again...");
+                logger.LogError(e, "Failed to import. Repairing path and trying again...");
                 await Cli.Wrap("nix-store")
                     .WithArguments(builder => builder
                         .Add(["--repair-path", storePath]))
@@ -209,7 +209,15 @@ public class StoreController(IConfiguration configuration, ILogger<StoreControll
             }
         }
 
-        IOFile.Delete(narPath);
+        try
+        {
+            IOFile.Delete(narPath);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Error deleting nar file {narPath}", narPath);
+        }
+
         try
         {
             Directory.CreateDirectory(Path.Join(cachePath, "links"));
@@ -220,7 +228,7 @@ public class StoreController(IConfiguration configuration, ILogger<StoreControll
         }
         catch (Exception e)
         {
-            logger.LogWarning(e, "Failed to create symlink for {narHash}.", narHash);
+            logger.LogError(e, "Failed to create symlink for {narHash}.", narHash);
         }
 
         return Results.Ok();
