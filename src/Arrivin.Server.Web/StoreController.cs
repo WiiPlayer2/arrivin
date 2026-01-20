@@ -4,9 +4,11 @@ using System.Text.Json.Serialization;
 using CliWrap;
 using CliWrap.Buffered;
 using EasyCompressor;
+using LanguageExt;
 using Microsoft.AspNetCore.Mvc;
 using Path = System.IO.Path;
 using IOFile = System.IO.File;
+using static LanguageExt.Prelude;
 
 namespace Arrivin.Server.Web;
 
@@ -17,6 +19,8 @@ public class StoreController(IConfiguration configuration, ILogger<StoreControll
     private static readonly DirectoryInfo TMP_DOWNLOAD_PATH = Directory.CreateTempSubdirectory("arrivind");
 
     private readonly string cachePath = configuration.GetValue<string>("NarCachePath")!;
+
+    private static readonly Encoding UTF8 = new UTF8Encoding(false);
 
     [Route("nar/{hash}.nar.zst")]
     [HttpHead]
@@ -140,7 +144,7 @@ public class StoreController(IConfiguration configuration, ILogger<StoreControll
 
         string storePath = default!;
         string fileHash = default!;
-        var references = Array.Empty<string>();
+        var references = Array<string>();
         string? deriver = default;
         var compression = "none";
         foreach (var line in text.Split('\n'))
@@ -184,25 +188,11 @@ public class StoreController(IConfiguration configuration, ILogger<StoreControll
             logger.LogDebug("Importing NAR into {storePath}", storePath);
 
             using var importStream = new MemoryStream();
-
-            await WriteNarLong(importStream, 1L, cancellationToken);
-
-            await using var compressedNar = IOFile.OpenRead(narPath);
-            await decompress(compressedNar, importStream, cancellationToken);
-
-            await importStream.WriteAsync("NIXE\0\0\0\0"u8.ToArray(), cancellationToken);
-            await WriteNixString(importStream, storePath, cancellationToken);
-            await WriteNarLong(importStream, references.LongLength, cancellationToken);
-            foreach (var reference in references)
-                await WriteNixString(importStream, PrintPath(reference), cancellationToken);
-            await WriteNixString(importStream, deriver is null ? string.Empty : PrintPath(deriver), cancellationToken);
-            await WriteNarLong(importStream, 0L, cancellationToken);
-
-            await WriteNarLong(importStream, 0L, cancellationToken);
-
+            // ReSharper disable once ReturnValueOfPureMethodIsNotUsed
+            await WriteStoreImportPackage(importStream).RunUnit();
             await importStream.FlushAsync(cancellationToken);
-
             importStream.Position = 0;
+            
             try
             {
                 await CliStoreImport(importStream);
@@ -216,8 +206,6 @@ public class StoreController(IConfiguration configuration, ILogger<StoreControll
                     .ExecuteBufferedAsync(cancellationToken);
                 await CliStoreImport(importStream);
             }
-
-            compressedNar.Close();
         }
 
         IOFile.Delete(narPath);
@@ -242,6 +230,23 @@ public class StoreController(IConfiguration configuration, ILogger<StoreControll
                     .Add(["--import"]))
                 .WithStandardInputPipe(PipeSource.FromStream(importStream))
                 .ExecuteBufferedAsync(cancellationToken);
+
+        Aff<Unit> WriteStoreImportPackage(Stream stream) =>
+            from _10 in WriteNarLong2(stream, 1L, cancellationToken)
+            from _20 in use(
+                Eff(() => IOFile.Open(narPath, FileMode.Open, FileAccess.Read, FileShare.Read)),
+                compressedNar => Aff(() => decompress(compressedNar, stream, cancellationToken).ToUnit().ToValue())
+            )
+            from _30 in Aff(() => stream.WriteAsync("NIXE\0\0\0\0"u8.ToArray(), cancellationToken).ToUnit())
+            from _40 in WriteNixString2(stream, storePath, cancellationToken)
+            from _50 in WriteNarLong2(stream, references.Length, cancellationToken)
+            from _60 in references
+                .Select(reference => WriteNixString2(stream, PrintPath(reference), cancellationToken))
+                .TraverseSerial(identity)
+            from _70 in WriteNixString2(stream, deriver is null ? string.Empty : PrintPath(deriver), cancellationToken)
+            from _80 in WriteNarLong2(stream, 0L, cancellationToken)
+            from _90 in WriteNarLong2(stream, 0L, cancellationToken)
+            select unit;
     }
 
     private string PrintPath(string path) => $"/nix/store/{path}";
@@ -309,10 +314,19 @@ public class StoreController(IConfiguration configuration, ILogger<StoreControll
     {
         var valueBytes = BitConverter.GetBytes(value);
         if (!BitConverter.IsLittleEndian)
-            Array.Reverse(valueBytes);
+            System.Array.Reverse(valueBytes);
 
         await stream.WriteAsync(valueBytes, cancellationToken);
     }
+
+    private Aff<Unit> WriteNarLong2(Stream stream, long value, CancellationToken cancellationToken) =>
+        from valueBytes in SuccessEff((Arr<byte>)BitConverter.GetBytes(value))
+        let endianizedValueBytes =
+            !BitConverter.IsLittleEndian
+                ? valueBytes.Reverse()
+                : valueBytes
+        from _ in Aff(() => stream.WriteAsync(endianizedValueBytes.ToArray(), cancellationToken).ToUnit())
+        select unit;
 
     private async Task WriteNixString(Stream stream, string value, CancellationToken cancellationToken)
     {
@@ -323,6 +337,15 @@ public class StoreController(IConfiguration configuration, ILogger<StoreControll
         for (var i = 0; i < padding; i++)
             stream.WriteByte(0);
     }
+
+    private Aff<Unit> WriteNixString2(Stream stream, string value, CancellationToken cancellationToken) =>
+        from _10 in WriteNarLong2(stream, value.Length, cancellationToken)
+        from _20 in Aff(() => stream.WriteAsync(UTF8.GetBytes(value), cancellationToken).ToUnit())
+        let padding = (8 - value.Length % 8) % 8
+        let padBytes = Enumerable.Repeat<byte>(0, padding).ToArray()
+        from _30 in Aff(() => stream.WriteAsync(padBytes, cancellationToken).ToUnit())
+        select unit;
+    
 
     private record PathInfo(
         [property: JsonPropertyName("narSize")]
