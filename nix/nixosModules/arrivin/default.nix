@@ -101,7 +101,7 @@ in
 
         extraArgs = mkOption {
           type = with types; listOf str;
-          default = [];
+          default = [ ];
         };
       };
 

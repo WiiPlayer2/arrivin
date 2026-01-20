@@ -203,11 +203,19 @@ public class StoreController(IConfiguration configuration, ILogger<StoreControll
             await importStream.FlushAsync(cancellationToken);
 
             importStream.Position = 0;
-            await Cli.Wrap("nix-store")
-                .WithArguments(builder => builder
-                    .Add(["--import"]))
-                .WithStandardInputPipe(PipeSource.FromStream(importStream))
-                .ExecuteBufferedAsync(cancellationToken);
+            try
+            {
+                await CliStoreImport(importStream);
+            }
+            catch (Exception e)
+            {
+                logger.LogWarning(e, "Failed to import. Repairing path and trying again...");
+                await Cli.Wrap("nix-store")
+                    .WithArguments(builder => builder
+                        .Add(["--repair-path", storePath]))
+                    .ExecuteBufferedAsync(cancellationToken);
+                await CliStoreImport(importStream);
+            }
 
             compressedNar.Close();
         }
@@ -227,6 +235,13 @@ public class StoreController(IConfiguration configuration, ILogger<StoreControll
         }
 
         return Results.Ok();
+
+        async Task CliStoreImport(MemoryStream importStream) =>
+            await Cli.Wrap("nix-store")
+                .WithArguments(builder => builder
+                    .Add(["--import"]))
+                .WithStandardInputPipe(PipeSource.FromStream(importStream))
+                .ExecuteBufferedAsync(cancellationToken);
     }
 
     private string PrintPath(string path) => $"/nix/store/{path}";

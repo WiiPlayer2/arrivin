@@ -61,11 +61,12 @@ let
         }
       '';
     in
-    runCommand "repo" {
-      buildInputs = [
-        git
-      ];
-    } ''
+    runCommand "repo"
+      {
+        buildInputs = [
+          git
+        ];
+      } ''
       mkdir -p $out
       cd $out
 
