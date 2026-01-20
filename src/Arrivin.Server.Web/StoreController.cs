@@ -192,10 +192,10 @@ public class StoreController(IConfiguration configuration, ILogger<StoreControll
             // ReSharper disable once ReturnValueOfPureMethodIsNotUsed
             await WriteStoreImportPackage(importStream).RunUnit();
             await importStream.FlushAsync(cancellationToken);
-            importStream.Position = 0;
             
             try
             {
+                importStream.Position = 0;
                 await CliStoreImport(importStream);
             }
             catch (Exception e)
@@ -205,6 +205,8 @@ public class StoreController(IConfiguration configuration, ILogger<StoreControll
                     .WithArguments(builder => builder
                         .Add(["--repair-path", storePath]))
                     .ExecuteBufferedAsync(cancellationToken);
+
+                importStream.Position = 0;
                 await CliStoreImport(importStream);
             }
         }
